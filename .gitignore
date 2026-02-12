@@ -1,1 +1,6 @@
 /cmake_variables.txt
+Thirdparty/
+Vocabulary/
+bin/
+lib/
+dataset/
