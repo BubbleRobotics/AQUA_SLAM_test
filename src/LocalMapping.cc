@@ -1646,6 +1646,7 @@ void LocalMapping::InitializeDvlIMU()
 	vector<KeyFrame *> vpKF(lpKF.begin(), lpKF.end());
 
 	if (vpKF.size() < nMinKF) {
+		std::cout << "Too few KF! \n";
 		return;
 	}
 

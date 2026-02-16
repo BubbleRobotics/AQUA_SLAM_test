@@ -13513,7 +13513,7 @@ void Optimizer::DvlGyroInitOptimization4(Map *pMap,
 
 double Optimizer::DvlIMUInitOptimization(Map *pMap, double priori_g, double priori_a)
 {
-	// Verbose::PrintMess("inertial optimization", Verbose::VERBOSITY_NORMAL);
+	Verbose::PrintMess("inertial optimization", Verbose::VERBOSITY_NORMAL);
 	int its = 200; // Check number of iterations
 	long unsigned int maxKFid = pMap->GetMaxKFid();
 	const vector<KeyFrame *> vpKFs = pMap->GetAllKeyFrames();
