@@ -3347,7 +3347,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool *pbStopFlag, vector<Ke
 
 void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool *pbStopFlag, Map *pMap, int &num_fixedKF)
 {
-	//cout << "LBA" << endl;
+	cout << "LBA from Optimizer\n";
 	// Local KeyFrames: First Breath Search from Current Keyframe
 	list<KeyFrame *> lLocalKeyFrames;
 
@@ -13513,6 +13513,8 @@ void Optimizer::DvlGyroInitOptimization4(Map *pMap,
 
 double Optimizer::DvlIMUInitOptimization(Map *pMap, double priori_g, double priori_a)
 {
+	std::cout << "\nCalled Optimizer::DvlIMUInitOptimization\n\n";
+
 	Verbose::PrintMess("inertial optimization", Verbose::VERBOSITY_NORMAL);
 	int its = 200; // Check number of iterations
 	long unsigned int maxKFid = pMap->GetMaxKFid();
@@ -13686,6 +13688,9 @@ double Optimizer::DvlIMUInitOptimization(Map *pMap, double priori_g, double prio
 		}
 	}
 
+	// Extrinsics before optimisation:
+	// std::cout << "T_d_c before optimisaiton:\n" << vT_d_c->estimate() << "\n";
+	// std::cout << "T_g_d before optimisation:\n" << vT_g_d->estimate() << "\n";
 
 	optimizer.setVerbose(false);
     optimizer.initializeOptimization(0);
@@ -13694,6 +13699,10 @@ double Optimizer::DvlIMUInitOptimization(Map *pMap, double priori_g, double prio
     VA->setFixed(false);
     optimizer.initializeOptimization(0);
     optimizer.optimize(20);
+
+	// Extrinsics after optimisation:
+	// std::cout << "T_d_c after optimisaiton:\n" << vT_d_c->estimate() << "\n";
+	// std::cout << "T_g_d after optimisation:\n" << vT_g_d->estimate() << "\n";
 
     auto bias_g = VG->estimate();
     auto bias_a = VA->estimate();
@@ -13752,6 +13761,8 @@ double Optimizer::DvlIMUInitOptimization(Map *pMap, double priori_g, double prio
 
 void Optimizer::DvlIMURefineOptimization(Atlas* pAtlas)
 {
+	std::cout << "\nCalled Optimizer::DvlIMURefineOptimization\n";
+
     g2o::SparseOptimizer optimizer;
     g2o::BlockSolverX::LinearSolverType *linearSolver;
     linearSolver = new g2o::LinearSolverEigen<g2o::BlockSolverX::PoseMatrixType>();
