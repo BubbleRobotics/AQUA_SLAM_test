@@ -743,8 +743,8 @@ bool LoopClosing::DetectCommonRegionsFromBoW(std::vector<KeyFrame*> &vpBowCand, 
              */
             Sim3Solver solver = Sim3Solver(mpCurrentKF, pMostBoWMatchesKF, vpMatchedPoints, bFixedScale, vpKeyFrameMatchedMP);
             solver.SetRansacParameters(0.99, nBoWInliers, 300); // at least 15 inliers
-			cout<<"set Ransac solver: "<<endl;
-			//ROS_INFO_STREAM("set Ransac solver");
+			// cout<<"set Ransac solver: "<<endl;
+			// ROS_INFO_STREAM("set Ransac solver");
 
             bool bNoMore = false;
             vector<bool> vbInliers;
