@@ -97,6 +97,7 @@ public:
 	bool LoadMap(std_srvs::EmptyRequest &req, std_srvs::EmptyResponse &res);
 	bool CalibrateDVLGyro(std_srvs::EmptyRequest &req, std_srvs::EmptyResponse &res);
     bool FullBA(std_srvs::EmptyRequest &req, std_srvs::EmptyResponse &res);
+	bool CalibrationBA(std_srvs::EmptyRequest &req, std_srvs::EmptyResponse &res);  // For extrinsic param calibration
 
 protected:
 	System *mp_system;
@@ -147,7 +148,7 @@ protected:
 	boost::shared_ptr<ros::Publisher> mp_pose_integration_ref_pub;
 	boost::shared_ptr<ros::Publisher> mp_pose_integration_cur_pub;
 
-	boost::shared_ptr<ros::ServiceServer> mp_save_srv, m_load_srv, m_calib_srv, m_fullBA_srv;
+	boost::shared_ptr<ros::ServiceServer> mp_save_srv, m_load_srv, m_calib_srv, m_fullBA_srv, m_calibrationBA_srv;
 
     // gravity dir of current map
     Eigen::Isometry3d mT_w_c0;

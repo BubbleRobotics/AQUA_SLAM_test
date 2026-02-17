@@ -153,11 +153,6 @@ void LocalMapping::Run()
                                                      num_FixedKF_BA);
                     }
                     else{
-                        // DvlGyroOptimizer::LocalDVLGyroBundleAdjustment(mpCurrentKeyFrame,
-                        // 											   &mbAbortBA,
-                        // 											   mpCurrentKeyFrame->GetMap(),
-                        // 											   num_FixedKF_BA,
-                        // 											   mpTracker->mlamda_DVL);
                         DvlGyroOptimizer::LocalDVLIMUBundleAdjustment(mpAtlas,
                                                                       mpCurrentKeyFrame,
                                                                       &mbAbortBA,
@@ -257,6 +252,7 @@ void LocalMapping::Run()
 
 
 		}
+
 		else if (Stop() && !mbBadImu) {
 			// Safe area to stop
 			while (isStopped() && !CheckFinish()) {
@@ -1765,8 +1761,10 @@ void LocalMapping::InitializeDvlIMU()
 void LocalMapping::RefineGravityDvlIMU()
 {
     if(mpAtlas->GetAllKeyFrames().size()<10)
+		std::cout << "Early return from LocalMapping::RefineGravityDvlIMU because we lack keyframes\n";
         return;
     if (mbResetRequested) {
+		std::cout << "Early return from LocalMapping::RefineGravityDvlIMU because mbResetRequested\n";
         return;
     }
 
@@ -1822,4 +1820,16 @@ void LocalMapping::ResetKFBias()
     }
 
 }
+
+void LocalMapping::CalibrationBA()
+{
+	DvlGyroOptimizer::CalibrationBA(mpAtlas,
+									mpCurrentKeyFrame,
+									&mbAbortBA,
+									mpCurrentKeyFrame->GetMap(),
+									10,
+									mpTracker->mlamda_DVL,
+									mpTracker->mlamda_visual);
+}
+
 } //namespace ORB_SLAM

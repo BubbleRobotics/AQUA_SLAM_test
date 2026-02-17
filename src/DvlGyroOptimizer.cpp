@@ -1077,6 +1077,9 @@ void
 DvlGyroOptimizer::LocalDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, bool* pbStopFlag, Map* pMap, int &num_fixedKF,
                                               double lamda_DVL, double lamda_visual)
 {
+
+    std::cout << "DvlGyroOptimizer::LocalDVLIMUBundleAdjustment was called\n";
+    
     Map *pCurrentMap = pKF->GetMap();
     int Nd = std::min(10, (int)pCurrentMap->KeyFramesInMap() - 2);// number of keyframes in current map
     const unsigned long maxKFid = pKF->mnId;
@@ -1613,6 +1616,9 @@ DvlGyroOptimizer::LocalDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, bool
         }
     }
 
+    // Extrinsics before optimisation:
+	// std::cout << "T_d_c before optimisaiton:\n" << vT_d_c->estimate() << "\n";
+	// std::cout << "T_g_d before optimisation:\n" << vT_g_d->estimate() << "\n";
 
     optimizer.initializeOptimization(0);
     optimizer.optimize(20);
@@ -1662,7 +1668,9 @@ DvlGyroOptimizer::LocalDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, bool
         optimizer.optimize(10);
     }
 
-
+    // Extrinsics after optimisation:
+	// std::cout << "T_d_c after optimisaiton:\n" << vT_d_c->estimate() << "\n";
+	// std::cout << "T_g_d after optimisation:\n" << vT_g_d->estimate() << "\n";
 
     // Recover optimized data
     stringstream ss;
@@ -2455,6 +2463,8 @@ void DvlGyroOptimizer::FullDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, 
                                                   const int &num_fixedKF, double lamda_DVL, double lamda_visual)
 
 {
+    ROS_INFO("Called DvlGyroOptimizer::FullDVLIMUBundleAdjustment");
+
     Map *pCurrentMap = pKF->GetMap();
     int Nd = pCurrentMap->KeyFramesInMap();// number of keyframes in current map
     const unsigned long maxKFid = pKF->mnId;
@@ -3116,6 +3126,9 @@ void DvlGyroOptimizer::FullDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, 
     pMap->IncreaseChangeIndex();
     // ROS_INFO_STREAM("Map change after BA: "<<pMap->GetMapChangeIndex());
     ROS_INFO_STREAM("Full BA upto KF["<<pKF->mnId<<"] done");
+
+    ROS_INFO("DvlGyroOptimizer::FullDVLIMUBundleAdjustment returned!");
+    std::cout << std::flush;  // Make sure the outputs actually appear on the screen immediately
 }
 
 void DvlGyroOptimizer::LocalDVLIMUPoseGraph(Atlas* pAtlas, KeyFrame* pKF, Map* pMap)
@@ -4914,4 +4927,9 @@ void DvlGyroOptimizer::DvlGyroInitOptimization(Map *pMap,
 	}
 
 }
+
+void DvlGyroOptimizer::CalibrationBA(Atlas* pAtlas, KeyFrame* pKF, bool* pbStopFlag, Map* pMap,
+                                     const int &num_fixedKF, double lamda_DVL, double lamda_visual){};
+
+// Namespace ORB_SLAM3
 }

@@ -24,6 +24,10 @@
 #include "Initializer.h"
 #include "RosHandling.h"
 
+// For the CalibrateBA service
+#include <ros/callback_queue.h>
+#include "ros/ros.h"
+
 #include <mutex>
 
 
@@ -110,6 +114,7 @@ public:
     // not consider far points (clouds)
     bool mbFarPoints;
     float mThFarPoints;
+
 protected:
 
     bool CheckNewKeyFrames();
@@ -195,6 +200,9 @@ protected:
     ofstream f_lm;
 
 	friend class RosHandling;
+
+    // Needed for service CalibrationBA, calibrating extrinsics
+    void CalibrationBA();
 };
 
 } //namespace ORB_SLAM

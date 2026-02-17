@@ -41,13 +41,13 @@ public:
     void static LocalDVLIMUPoseGraph(Atlas* pAtlas, KeyFrame* pKF, Map *pMap);
 	void static FullDVLGyroBundleAdjustment(bool *pbStopFlag, Map *pMap, double lamda_DVL);
 
-
 	int static PoseDvlGyrosOPtimizationLastFrame(Frame *pFrame, bool bRecInit = false);
 	int static PoseDvlGyrosOPtimizationLastKeyFrame(Frame *pFrame, bool bRecInit = false);
 
-
-
 	void static DvlGyroInitOptimization(Map *pMap, Eigen::Vector3d &bg, bool bMono, float priorG = 1e2);
+
+	// Function primarily meant to do extrinsic parameter calibration, called by a ros service. Based on FullDVLIMUBundleAdjustment
+	void static CalibrationBA(Atlas* pAtlas, KeyFrame* pKF, bool *pbStopFlag, Map *pMap,const int& num_fixedKF, double lamda_DVL, double lamda_visual = 1.0);
 
 };
 

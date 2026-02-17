@@ -106,6 +106,10 @@ RosHandling::RosHandling(System *pSys, LocalMapping *pLocal)
     ros::ServiceServer fullBA_srv = nh_.advertiseService("/AQUA_SLAM/fullBA", &RosHandling::FullBA, this);
     m_fullBA_srv = boost::shared_ptr<ros::ServiceServer>(boost::make_shared<ros::ServiceServer>(fullBA_srv));
 
+	// Serivce primarily for extrinsic parameter calibration
+	ros::ServiceServer calibrationBA_srv = nh_.advertiseService("/AQUA_SLAM/calibrationBA", &RosHandling::CalibrationBA, this);
+	m_calibrationBA_srv = boost::shared_ptr<ros::ServiceServer>(boost::make_shared<ros::ServiceServer>(calibrationBA_srv));
+
     mT_w_c0.setIdentity();
 }
 
@@ -898,4 +902,11 @@ void RosHandling::Run(Atlas* pAtlas)
         usleep(250000);
     }
 
+}
+
+// Serivce primarily for extrinsic parameter calibration
+bool RosHandling::CalibrationBA(std_srvs::EmptyRequest &req, std_srvs::EmptyResponse &res)
+{
+    mp_LocalMapping->CalibrationBA();
+    return true;
 }
