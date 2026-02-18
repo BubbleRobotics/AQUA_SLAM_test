@@ -5148,13 +5148,13 @@ void DvlGyroOptimizer::CalibrationBA(Atlas* pAtlas, KeyFrame* pKF, bool* pbStopF
     g2o::VertexSE3Expmap *vT_d_c = new g2o::VertexSE3Expmap();
     vT_d_c->setEstimate(Converter::toSE3Quat(pKF->mImuCalib.mT_dvl_c));
     vT_d_c->setId((maxKFid + 1)*4);
-    vT_d_c->setFixed(false);  // ALLOW OPTIMISATION
+    vT_d_c->setFixed(true);  // false ALLOWS OPTIMISATION
     optimizer.addVertex(vT_d_c);
 
     g2o::VertexSE3Expmap *vT_g_d = new g2o::VertexSE3Expmap();
     vT_g_d->setEstimate(Converter::toSE3Quat(pKF->mImuCalib.mT_gyro_dvl));
     vT_g_d->setId((maxKFid + 1)*4+1);
-    vT_g_d->setFixed(false);  // ALLOW OPTIMISATION
+    vT_g_d->setFixed(true);  // false ALLOWS OPTIMISATION
     optimizer.addVertex(vT_g_d);
 
     // Print extrinsics before optimisation:
@@ -5465,18 +5465,11 @@ void DvlGyroOptimizer::CalibrationBA(Atlas* pAtlas, KeyFrame* pKF, bool* pbStopF
 
     // ------------------------- RUN THE OPTIMISER ------------------------- //
 
-    std::cout << "pbStopFlag is " << *pbStopFlag << "\n";
     optimizer.setVerbose(true);
     optimizer.initializeOptimization(0);
     std::cout << "Starting optimisation in CalibrationBA" << std::endl;
     int iters_done = optimizer.optimize(10);  // originally 10
     std::cout << "Optimizer actually ran " << iters_done << " iterations\n";
-    if(pbStopFlag){
-        // This variable is checked at every iteration. The iteration exits when it goes to "true"
-        // Internally g2o is taking a pointer to this variable.
-        optimizer.setForceStopFlag(pbStopFlag);
-        std::cout << "stop flag set\n";
-    }
     stringstream ss_v_chi2;
     std::set<std::pair<KeyFrame*,MapPoint*>> remove_obs;
     ss_v_chi2<<"mono chi2: ";
@@ -5510,16 +5503,17 @@ void DvlGyroOptimizer::CalibrationBA(Atlas* pAtlas, KeyFrame* pKF, bool* pbStopF
     }
     // ROS_INFO_STREAM(ss_v_chi2.str());
     for(int i=0;i<4;i++){
-        if(pbStopFlag){
-            if(*pbStopFlag){
-                ROS_DEBUG_STREAM("stop BA");
-                break;
-            }
-        }
         optimizer.initializeOptimization(0);
         iters_done = optimizer.optimize(10);
         std::cout << "Optimizer actually ran " << iters_done << " iterations\n";
     }
+
+    // After optimising landmarks and rejecting outliers, now also optimise extrinsics:
+    vT_d_c->setFixed(false);
+    // vT_g_d->setFixed(false);
+    optimizer.initializeOptimization(0);
+    iters_done = optimizer.optimize(10);
+    std::cout << "Optimizer actually ran " << iters_done << " iterations\n";
 
     // Print extrinsics AFTER optimisation:
 	std::cout << "T_d_c after optimisaiton:\n" << vT_d_c->estimate() << "\n";

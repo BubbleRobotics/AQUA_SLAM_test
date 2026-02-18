@@ -203,6 +203,9 @@ protected:
 
     // Needed for service CalibrationBA, calibrating extrinsics
     void CalibrationBA();
+
+    // Second approach to calibration: within a longer init
+    void InitializeDvlIMUExtr();
 };
 
 } //namespace ORB_SLAM

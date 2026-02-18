@@ -170,6 +170,9 @@ public:
 
 	void static DvlBeamOptimization(Map *pMap);
 	void static DvlBeamOptimization_dvl(Map *pMap);
+
+    // Version of DvlIMUInitOptimization that will also do extrinsic calibration
+    double static DvlIMUInitOptimizationExtr(Map *pMap, double priori_g, double priori_a);
 };
 
 } //namespace ORB_SLAM3
