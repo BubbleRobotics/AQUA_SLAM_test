@@ -170,6 +170,8 @@ public:
 
 	void static DvlBeamOptimization(Map *pMap);
 	void static DvlBeamOptimization_dvl(Map *pMap);
+
+    void static LocalStereoImuOnlyBA(Atlas* pAtlas, KeyFrame* pKF, bool *pbStopFlag, Map *pMap, int& num_fixedKF, double lamda_DVL, double lamda_visual = 1.0);
 };
 
 } //namespace ORB_SLAM3

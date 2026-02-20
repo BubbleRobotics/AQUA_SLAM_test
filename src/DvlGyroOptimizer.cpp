@@ -1672,7 +1672,8 @@ DvlGyroOptimizer::LocalDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, bool
 	// std::cout << "T_d_c after optimisaiton:\n" << vT_d_c->estimate() << "\n";
 	// std::cout << "T_g_d after optimisation:\n" << vT_g_d->estimate() << "\n";
 
-    // Recover optimized data
+    // --------------------- RECOVER OPTIMISED DATA --------------------- //
+
     stringstream ss;
     ss<<"LocalVisualAcousticInertial BA"<<"\n";
     unique_lock<shared_timed_mutex> lock(pMap->mMutexMapUpdate);
@@ -1685,14 +1686,14 @@ DvlGyroOptimizer::LocalDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, bool
 //    }
     //update KF after current KF
     auto all_kf = pMap->GetAllKeyFrames();
-    for(auto pkfi:all_kf){
+    for(auto pkfi:all_kf){  // pkfi as in "pionter to keyframe i"
         // Pose
         VertexPoseDvlIMU *VP = dynamic_cast<VertexPoseDvlIMU *>(optimizer.vertex(pKF->mnId));
         Eigen::Quaterniond Rwci(VP->estimate().Rwc);
         Eigen::Vector3d twci = VP->estimate().twc;
-        Eigen::Isometry3d T_w_ci_new = Eigen::Isometry3d::Identity();
-        T_w_ci_new.pretranslate(twci);
-        T_w_ci_new.rotate(Rwci);
+        Eigen::Isometry3d T_w_ci_new = Eigen::Isometry3d::Identity();  // initialise this objet as identity transform
+        T_w_ci_new.pretranslate(twci);                                 // input translation
+        T_w_ci_new.rotate(Rwci);                                       // input rotation
 
         cv::Mat Twci = pKF->GetPoseInverse();
         Eigen::Isometry3d T_w_ci = Eigen::Isometry3d::Identity();
