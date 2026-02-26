@@ -87,6 +87,7 @@ add_library(${PROJECT_NAME} SHARED
     src/CameraModels/KannalaBrandt8.cpp
     src/ORBextractor.cc
     src/Converter.cc
+    src/ImuTypes.cc
 )
 
 # Link libraries to core SLAM library
