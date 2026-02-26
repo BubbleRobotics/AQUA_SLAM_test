@@ -45,7 +45,7 @@ find_package(image_transport REQUIRED)
 find_package(message_filters REQUIRED)
 
 # Third-party dependencies
-find_package(OpenCV REQUIRED)       # Originally OpenCV 3.2
+find_package(OpenCV 4 REQUIRED)       # Originally OpenCV 3.2
 find_package(Pangolin REQUIRED)
 find_package(Eigen3 3.3 REQUIRED)
 find_package(PCL REQUIRED)
@@ -85,6 +85,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/Thirdparty/octomap)
 add_library(${PROJECT_NAME} SHARED
     src/CameraModels/Pinhole.cpp
     src/CameraModels/KannalaBrandt8.cpp
+    src/ORBextractor.cc
 )
 
 # Link libraries to core SLAM library
