@@ -38,7 +38,9 @@ find_package(catkin REQUIRED COMPONENTS
         rospy
         std_msgs
         waterlinked_a50_ros_driver
+        dvl_msgs
         )
+        # dvl_msgs are the messages used in Barcelona
 
 find_package(Pangolin REQUIRED)
 set(Eigen3_DIR ${PROJECT_SOURCE_DIR}/Thirdparty/eigen3.3.4)
@@ -140,7 +142,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_LOG_DYN_LINK")
 catkin_package(
         INCLUDE_DIRS include
         LIBRARIES lib
-        CATKIN_DEPENDS geometry_msgs image_transport message_filters nav_msgs octomap_msgs roscpp sensor_msgs tf message_runtime waterlinked_a50_ros_driver
+        CATKIN_DEPENDS geometry_msgs image_transport message_filters nav_msgs octomap_msgs roscpp sensor_msgs tf message_runtime waterlinked_a50_ros_driver dvl_msgs
         #          DEPENDS system_lib
 )
 

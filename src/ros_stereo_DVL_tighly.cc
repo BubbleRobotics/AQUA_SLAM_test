@@ -31,9 +31,10 @@
 #include <nav_msgs/Odometry.h>
 //#include <ds_sensor_msgs/Dvl.h>
 #include <image_transport/image_transport.h>
-#include <waterlinked_a50_ros_driver/DVL.h>
-#include <waterlinked_a50_ros_driver/DVLBeam.h>
+#include <waterlinked_a50_ros_driver/DVL.h>      // DVL messages SenseRoboticsLab uses
+#include <waterlinked_a50_ros_driver/DVLBeam.h>  // DVL messages SenseRoboticsLab uses
 
+#include <dvl_msgs/DVL.h>
 
 #include<opencv2/core/core.hpp>
 
@@ -102,10 +103,10 @@ public:
 	{};
 	void GrabDVL(const nav_msgs::OdometryConstPtr &odo);
 //	void GrabDVL2(const ds_sensor_msgs::DvlConstPtr &odo);
-	void GrabDVL2(const waterlinked_a50_ros_driver::DVLConstPtr &msg);
+	void GrabDVL2(const dvl_msgs::DVLConstPtr &msg);
 
 	queue<nav_msgs::OdometryConstPtr> dvlBuf;
-	queue<waterlinked_a50_ros_driver::DVLConstPtr> dvlBuf2;
+	queue<dvl_msgs::DVLConstPtr> dvlBuf2;
 //	queue<ds_sensor_msgs::DvlConstPtr> dvlBuf2;
 	std::mutex mBufMutex;
 };
@@ -175,6 +176,12 @@ int main(int argc, char **argv)
 	string dvl_topic = fsSettings["DvlTopic"];
 	string img_l_topic = fsSettings["LeftImgTopic"];
 	string img_r_topic = fsSettings["RightImgTopic"];
+
+	ROS_INFO_STREAM("ImuTopic: " << imu_topic);
+	ROS_INFO_STREAM("DvlTopic: " << dvl_topic);
+	ROS_INFO_STREAM("LeftImgTopic: " << img_l_topic);
+	ROS_INFO_STREAM("RightImgTopic: " << img_r_topic);
+
 //	ros::Subscriber sub_imu = n.subscribe("/BlueRov2/imu/data/ENU", 100, &ImuGrabber::GrabImu, &imugb);
 	ros::Subscriber sub_imu = n.subscribe(imu_topic, 100, &ImuGrabber::GrabImu, &imugb);
 	// flowave/falcon DVL
@@ -752,14 +759,14 @@ void DVLGrabber::GrabDVL(const nav_msgs::OdometryConstPtr &odo)
 {
 //	BOOST_LOG_TRIVIAL(info) << fixed << setprecision(9) << "DVL recieved! time:" << odo->header.stamp.toSec();
 //	cout<<"DVL recieved! time:"<<odo->header.stamp.toNSec()<<endl;
-    waterlinked_a50_ros_driver::DVLPtr msg = boost::make_shared<waterlinked_a50_ros_driver::DVL>();
+    dvl_msgs::DVLPtr msg = boost::make_shared<dvl_msgs::DVL>();
     msg->header = odo->header;
     msg->velocity_valid = true;
     msg->velocity.x = odo->twist.twist.linear.x;
     msg->velocity.y = odo->twist.twist.linear.y;
     msg->velocity.z = odo->twist.twist.linear.z;
     for(int i=0;i<4;i++){
-        waterlinked_a50_ros_driver::DVLBeam b;
+        dvl_msgs::DVLBeam b;
         b.rssi = 0;
         b.nsd = 0;
         b.valid = 0;
@@ -775,7 +782,7 @@ void DVLGrabber::GrabDVL(const nav_msgs::OdometryConstPtr &odo)
 	return;
 }
 
-void DVLGrabber::GrabDVL2(const waterlinked_a50_ros_driver::DVLConstPtr &msg)
+void DVLGrabber::GrabDVL2(const dvl_msgs::DVLConstPtr &msg)
 {
 //	BOOST_LOG_TRIVIAL(info) << fixed << setprecision(9) << "DVL recieved! time:" << msg->header.stamp.toSec();
 //	cout<<"DVL recieved! time:"<<odo->header.stamp.toNSec()<<endl;
