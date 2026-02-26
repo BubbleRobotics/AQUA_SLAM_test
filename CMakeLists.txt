@@ -84,6 +84,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/Thirdparty/octomap)
 
 add_library(${PROJECT_NAME} SHARED
     src/CameraModels/Pinhole.cpp
+    src/CameraModels/KannalaBrandt8.cpp
 )
 
 # Link libraries to core SLAM library
