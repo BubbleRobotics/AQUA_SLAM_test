@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<package format="3">
+
+  <!-- ========================================================= -->
+  <!-- Basic package metadata                                    -->
+  <!-- ========================================================= -->
+
+  <!-- Package name (must match project() in CMakeLists.txt) -->
+  <name>aqua_slam_ros2</name>
+
+  <!-- Package version -->
+  <version>0.0.1</version>
+
+  <!-- Short description of the package -->
+  <description>
+    ORB-DVL2: Stereo visual-inertial-DVL SLAM system for underwater robotics.
+  </description>
+
+  <!-- Maintainer information -->
+  <maintainer email="cedric@bubble-robotics.com">Cedric</maintainer>
+
+  <!-- License declaration (REPLACE with actual license!) -->
+  <license>BSD-3-Clause</license>
+
+  <!-- ========================================================= -->
+  <!-- Build system (ROS 2 uses ament instead of catkin)         -->
+  <!-- ========================================================= -->
+
+  <!-- Required build tool -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- ========================================================= -->
+  <!-- Core ROS 2 Dependencies                                   -->
+  <!-- ========================================================= -->
+
+  <!-- C++ client library (replaces roscpp) -->
+  <depend>rclcpp</depend>
+
+  <!-- Standard ROS message packages -->
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>dvl_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+
+  <!-- Image transport and synchronization -->
+  <depend>image_transport</depend>
+  <depend>message_filters</depend>
+
+  <!-- TF2 (replaces ROS 1 tf) -->
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+
+  <!-- Octomap message definitions -->
+  <depend>octomap_msgs</depend>
+
+  <!-- ========================================================= -->
+  <!-- Optional / Future Dependencies (Uncomment if needed)      -->
+  <!-- ========================================================= -->
+
+  <!-- <depend>pose_graph_msgs</depend> -->
+  <!-- <depend>rosbag2_cpp</depend> -->
+  <!-- <depend>vehicle_interface</depend> -->
+
+  <!-- ========================================================= -->
+  <!-- Export section                                            -->
+  <!-- ========================================================= -->
+
+  <export>
+    <!-- Required to declare ament build type -->
+    <build_type>ament_cmake</build_type>
+  </export>
+
+</package>
