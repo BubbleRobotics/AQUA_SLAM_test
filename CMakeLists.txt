@@ -43,6 +43,7 @@ find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(message_filters REQUIRED)
+find_package(cv_bridge REQUIRED)
 
 # Third-party dependencies
 find_package(OpenCV 4 REQUIRED)
@@ -127,6 +128,7 @@ ament_target_dependencies(${PROJECT_NAME}
   tf2_ros
   image_transport
   message_filters
+  cv_bridge
 )
 
 # ------------------------------------------------------------
