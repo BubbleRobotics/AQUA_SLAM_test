@@ -102,6 +102,7 @@ add_library(${PROJECT_NAME} SHARED
     src/Sim3Solver.cc
     src/PnPsolver.cc
     src/MLPnPsolver.cpp
+    src/LKTracker.cpp
 )
 
 # Link libraries to core SLAM library

@@ -18,7 +18,7 @@
 #include <image_transport/image_transport.hpp>
 #include <image_transport/subscriber_filter.hpp>
 #include <message_filters/sync_policies/approximate_time.h>
-#include <cv_bridge/cv_bridge.h>
+#include <cv_bridge/cv_bridge.hpp>
 
 // Eigen
 #include <Eigen/Dense>
@@ -117,8 +117,12 @@ public:
 
     vector<cv::Point2f> pts_velocity, right_pts_velocity;
 
-    // 🔁 ROS2 change: boost -> std
+    // ROS2 change: boost -> std
     std::shared_ptr<image_transport::Publisher> pTrack_img_pub;
+
+    // To have the logger, the node needs to be available as a member. 
+    // Default constructed in an intializer list
+    rclcpp::Node::SharedPtr mNode;
 };
 
 } // namespace ORB_SLAM3

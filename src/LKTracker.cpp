@@ -14,21 +14,23 @@ namespace ORB_SLAM3
 {
 LKTracker::LKTracker()
 {
-	rclcpp::Node::SharedPtr n;
-	image_transport::ImageTransport it(n);
+	rclcpp::Node::SharedPtr mNode = rclcpp::Node::make_shared("lk_tracker_node");
+	image_transport::ImageTransport it(mNode);
 	image_transport::Publisher track_pub = it.advertise("/lk_tracker/track_img", 10);
 	pTrack_img_pub =
-		boost::shared_ptr<image_transport::Publisher>(boost::make_shared<image_transport::Publisher>(track_pub));
+		std::shared_ptr<image_transport::Publisher>(std::make_shared<image_transport::Publisher>(track_pub));
 }
+
 LKTracker::LKTracker(bool bStereo)
 	: stereo_cam(bStereo)
 {
-	rclcpp::Node::SharedPtr n;
-	image_transport::ImageTransport it(n);
+	rclcpp::Node::SharedPtr mNode = rclcpp::Node::make_shared("lk_tracker_node");
+	image_transport::ImageTransport it(mNode);
 	image_transport::Publisher track_pub = it.advertise("/lk_tracker/track_img", 10);
 	pTrack_img_pub =
-		boost::shared_ptr<image_transport::Publisher>(boost::make_shared<image_transport::Publisher>(track_pub));
+		std::shared_ptr<image_transport::Publisher>(std::make_shared<image_transport::Publisher>(track_pub));
 }
+
 void LKTracker::drawTrack(const cv::Mat &imLeft,
                           const cv::Mat &imRight,
                           vector<int> &curLeftIds,
@@ -80,8 +82,8 @@ void LKTracker::drawTrack(const cv::Mat &imLeft,
 
 	//cv::Mat imCur2Compress;
 	//cv::resize(imCur2, imCur2Compress, cv::Size(cols, rows / 2));
-	std_msgs::Header header; // empty header
-	header.stamp = ros::Time::now();
+	std_msgs::msg::Header header; // empty header
+	header.stamp = rclcpp::Clock().now();
 	cv_bridge::CvImage img_bridge(header, sensor_msgs::image_encodings::BGR8, imTrack);
 	pTrack_img_pub->publish(img_bridge.toImageMsg());
 }
@@ -178,11 +180,11 @@ map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> LKTracker::trackImage(d
 
 	if (1) {
 		//rejectWithF();
-		ROS_DEBUG("set mask begins");
+		RCLCPP_DEBUG(mNode->get_logger(), "set mask begins");
 		// set a
 		setMask();
 
-		ROS_DEBUG("detect feature begins");
+		RCLCPP_DEBUG(mNode->get_logger(), "detect feature begins");
 		int n_max_cnt = MAX_CNT - static_cast<int>(cur_pts.size());
 		if (n_max_cnt > 0) {
 			if (mask.empty()) {
@@ -456,7 +458,7 @@ bool LKTracker::trackFrame(Frame &cur_frame, const Frame &prev_frame)
 		cv::cv2eigen(Tcw, T_cj_c0.matrix());
 	}
 	else {
-		ROS_ERROR_STREAM('LK_Tracker: cannot get current camera pose!');
+		RCLCPP_ERROR_STREAM(mNode->get_logger(), 'LK_Tracker: cannot get current camera pose!');
 		return false;
 	}
 	T_c0_cj = T_cj_c0.inverse();
@@ -465,7 +467,7 @@ bool LKTracker::trackFrame(Frame &cur_frame, const Frame &prev_frame)
 		cv::cv2eigen(Tlw, T_ci_c0.matrix());
 	}
 	else {
-		ROS_ERROR_STREAM('LK_Tracker: cannot get previous camera pose!');
+		RCLCPP_ERROR_STREAM(mNode->get_logger(), 'LK_Tracker: cannot get previous camera pose!');
 		return false;
 	}
 	T_c0_ci = T_ci_c0.inverse();
@@ -709,7 +711,7 @@ bool LKTracker::TrackReferenceKeyFrameKLT(KeyFrame *pKF, const Frame &cur_frame)
 		cv::cv2eigen(Tcw, T_cj_c0.matrix());
 	}
 	else {
-		ROS_ERROR_STREAM('LK_Tracker: cannot get current camera pose!');
+		RCLCPP_ERROR_STREAM(mNode->get_logger(), 'LK_Tracker: cannot get current camera pose!');
 		return false;
 	}
 	T_c0_cj = T_cj_c0.inverse();
@@ -718,7 +720,7 @@ bool LKTracker::TrackReferenceKeyFrameKLT(KeyFrame *pKF, const Frame &cur_frame)
 		cv::cv2eigen(Tlw, T_ci_c0.matrix());
 	}
 	else {
-		ROS_ERROR_STREAM('LK_Tracker: cannot get previous camera pose!');
+		RCLCPP_ERROR_STREAM(mNode->get_logger(), 'LK_Tracker: cannot get previous camera pose!');
 		return false;
 	}
 	T_c0_ci = T_ci_c0.inverse();
