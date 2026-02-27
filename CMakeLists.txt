@@ -76,6 +76,7 @@ include_directories(
 add_subdirectory(${PROJECT_SOURCE_DIR}/Thirdparty/g2o)
 add_subdirectory(${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2)
 add_subdirectory(${PROJECT_SOURCE_DIR}/Thirdparty/octomap)
+add_subdirectory(${PROJECT_SOURCE_DIR}/Thirdparty/Sophus)
 
 # ------------------------------------------------------------
 # Build main SLAM library
@@ -89,6 +90,12 @@ add_library(${PROJECT_NAME} SHARED
     src/Converter.cc
     src/ImuTypes.cc
     src/DVLGroPreIntegration.cpp
+    src/Frame.cc
+    src/KeyFrame.cc
+    src/KeyFrameDatabase.cc
+    src/Map.cc
+    src/MapPoint.cc
+    src/TwoViewReconstruction.cc
 )
 
 # Link libraries to core SLAM library
@@ -122,6 +129,9 @@ ament_target_dependencies(${PROJECT_NAME}
 
 add_library(${PROJECT_NAME}_Optimization SHARED
     src/OptimizableTypes.cpp
+    src/ImuTypes.cc
+    src/DVLGroPreIntegration.cpp
+    src/G2oTypes.cc
 )
 
 target_link_libraries(${PROJECT_NAME}_Optimization
@@ -131,6 +141,7 @@ target_link_libraries(${PROJECT_NAME}_Optimization
   fmt::fmt
   DBoW2
   g2o
+  sophus
 )
 
 ament_target_dependencies(${PROJECT_NAME}_Optimization
