@@ -98,6 +98,7 @@ add_library(${PROJECT_NAME} SHARED
     src/TwoViewReconstruction.cc
     src/Atlas.cc
     src/MapDrawer.cc
+    src/Sim3Solver.cc
 )
 
 # Link libraries to core SLAM library
