@@ -45,7 +45,7 @@ find_package(image_transport REQUIRED)
 find_package(message_filters REQUIRED)
 
 # Third-party dependencies
-find_package(OpenCV 4 REQUIRED)       # Originally OpenCV 3.2
+find_package(OpenCV 4 REQUIRED)
 find_package(Pangolin REQUIRED)
 find_package(Eigen3 3.3 REQUIRED)
 find_package(PCL REQUIRED)
@@ -96,6 +96,8 @@ add_library(${PROJECT_NAME} SHARED
     src/Map.cc
     src/MapPoint.cc
     src/TwoViewReconstruction.cc
+    src/Atlas.cc
+    src/MapDrawer.cc
 )
 
 # Link libraries to core SLAM library
@@ -107,6 +109,7 @@ target_link_libraries(${PROJECT_NAME}
   DBoW2
   g2o
   octomap
+  ${Pangolin_LIBRARIES}
 )
 
 # Add ROS 2 dependencies (replaces catkin_LIBRARIES)
