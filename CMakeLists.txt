@@ -99,6 +99,7 @@ add_library(${PROJECT_NAME} SHARED
     src/Atlas.cc
     src/MapDrawer.cc
     src/Sim3Solver.cc
+    src/PnPsolver.cc
 )
 
 # Link libraries to core SLAM library
