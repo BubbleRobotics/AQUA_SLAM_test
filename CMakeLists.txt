@@ -100,6 +100,7 @@ add_library(${PROJECT_NAME} SHARED
     src/MapDrawer.cc
     src/Sim3Solver.cc
     src/PnPsolver.cc
+    src/MLPnPsolver.cpp
 )
 
 # Link libraries to core SLAM library
