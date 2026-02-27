@@ -88,6 +88,7 @@ add_library(${PROJECT_NAME} SHARED
     src/ORBextractor.cc
     src/Converter.cc
     src/ImuTypes.cc
+    src/DVLGroPreIntegration.cpp
 )
 
 # Link libraries to core SLAM library
