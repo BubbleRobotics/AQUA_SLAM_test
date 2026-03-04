@@ -29,8 +29,10 @@
 #include <opencv2/core/eigen.hpp>
 
 #include <thread>
-#include <include/CameraModels/Pinhole.h>
-#include <include/CameraModels/KannalaBrandt8.h>
+
+// From the CameraModels direcetory
+#include <Pinhole.h>
+#include <KannalaBrandt8.h>
 
 namespace ORB_SLAM3
 {

@@ -44,6 +44,9 @@
   <depend>nav_msgs</depend>
   <depend>cv_bridge</depend>
 
+  <!-- Ros service -->
+  <depend>std_srvs</depend>
+
   <!-- Image transport and synchronization -->
   <depend>image_transport</depend>
   <depend>message_filters</depend>
@@ -52,8 +55,10 @@
   <depend>tf2</depend>
   <depend>tf2_ros</depend>
 
-  <!-- Octomap message definitions -->
+  <!-- Others -->
   <depend>octomap_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>pcl_ros</depend>
 
   <!-- ========================================================= -->
   <!-- Optional / Future Dependencies (Uncomment if needed)      -->

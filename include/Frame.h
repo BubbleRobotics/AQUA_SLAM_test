@@ -24,8 +24,8 @@
 
 #include<vector>
 
-#include "Thirdparty/DBoW2/DBoW2/BowVector.h"
-#include "Thirdparty/DBoW2/DBoW2/FeatureVector.h"
+#include "DBoW2/BowVector.h"
+#include "DBoW2/FeatureVector.h"
 
 #include "ImuTypes.h"
 #include "ORBVocabulary.h"

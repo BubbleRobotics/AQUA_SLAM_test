@@ -20,7 +20,7 @@
 #include "ImuTypes.h"
 #include "Converter.h"
 #include "Pinhole.h"
-#include "Thirdparty/Sophus/sophus/geometry.hpp"
+#include "sophus/geometry.hpp"
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/core/core.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -28,7 +28,7 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/algorithm/string.hpp>
-#include "Thirdparty/g2o/g2o/types/types_six_dof_expmap.h"
+#include "g2o/types/types_six_dof_expmap.h"
 namespace ORB_SLAM3
 {
 
