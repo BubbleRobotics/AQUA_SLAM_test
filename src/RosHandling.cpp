@@ -77,7 +77,7 @@ RosHandling::RosHandling(System *pSys, LocalMapping *pLocal, rclcpp::Node::Share
 							std::placeholders::_1,
 							std::placeholders::_2
 						)
-					)
+					);
 
 	m_calib_srv = mpMainNode->create_service<std_srvs::srv::Empty>(
 						"/AQUA_SLAM/calibrate",
@@ -86,7 +86,7 @@ RosHandling::RosHandling(System *pSys, LocalMapping *pLocal, rclcpp::Node::Share
 							std::placeholders::_1,
 							std::placeholders::_2
 						)
-					)
+					);
 
 	m_fullBA_srv = mpMainNode->create_service<std_srvs::srv::Empty>(
 						"/AQUA_SLAM/FullBA",
@@ -95,7 +95,7 @@ RosHandling::RosHandling(System *pSys, LocalMapping *pLocal, rclcpp::Node::Share
 							std::placeholders::_1,
 							std::placeholders::_2
 						)
-					)
+					);
 
     mT_w_c0.setIdentity();
 }
@@ -103,15 +103,15 @@ RosHandling::RosHandling(System *pSys, LocalMapping *pLocal, rclcpp::Node::Share
 
 void RosHandling::PublishLeftImg(const sensor_msgs::msg::Image &img)
 {
-	mp_img_l_pub->publish(img);
+	mp_img_l_pub.publish(img);
 }
 void RosHandling::PublishRightImg(const sensor_msgs::msg::Image &img)
 {
-	mp_img_r_pub->publish(img);
+	mp_img_r_pub.publish(img);
 }
 void RosHandling::PublishImgWithInfo(const sensor_msgs::msg::Image &img)
 {
-	mp_img_info_pub->publish(img);
+	mp_img_info_pub.publish(img);
 }
 
 void RosHandling::PublishOrb(const Eigen::Isometry3d &T_c0_cj_orb,
@@ -134,7 +134,7 @@ void RosHandling::PublishOrb(const Eigen::Isometry3d &T_c0_cj_orb,
 	Eigen::Isometry3d T_w_cj = mT_w_c0 * T_c0_cj_orb;
 	Eigen::Isometry3d T_d0_dj = T_d_c * T_c0_cj_orb * T_d_c.inverse();
 
-	geometry_msgs::PoseStamped pose_to_pub;
+	geometry_msgs::msg::PoseStamped pose_to_pub;
 	pose_to_pub.header.frame_id = "AQUA_SLAM";
 	//pose_to_pub.header.stamp=ros::Time::now();
 	pose_to_pub.header.stamp = stamp;
@@ -177,7 +177,7 @@ void RosHandling::PublishOrb(const Eigen::Isometry3d &T_c0_cj_orb,
 	pose_to_pub.pose.orientation.w = rotation_q.w();
 	Eigen::Isometry3d T_w_rviz = T_w_cj * T_c_rviz;
 	BroadcastTF(T_w_rviz, stamp, "AQUA_SLAM", "/bluerov/base_link");
-	nav_msgs::Odometry odom;
+	nav_msgs::msg::Odometry odom;
 	odom.header = pose_to_pub.header;
 	odom.pose.pose = pose_to_pub.pose;
 	mp_odom_orb_pub->publish(odom);
@@ -283,7 +283,7 @@ void RosHandling::UpdateMap(ORB_SLAM3::Atlas *pAtlas)
 	}
 //	cout << "total free pointcloud number: " << mp_cloud_free->size() << endl;
 
-    sensor_msgs::PointCloud2 sparse_map;
+    sensor_msgs::msg::PointCloud2 sparse_map;
     pcl::toROSMsg(*mp_cloud_occupied, sparse_map);
     sparse_map.header.frame_id = "AQUA_SLAM";
     mp_pointcloud_pub->publish(sparse_map);
@@ -552,7 +552,7 @@ void RosHandling::PublishIntegration(Atlas *pAtlas)
                 T_w_c0_ref.rotate(R_w_c0_ref);
                 Eigen::Isometry3d T_w_cf_ref = T_w_c0_ref * T_c0_cf;
 
-                geometry_msgs::PoseStamped pose_to_pub;
+                geometry_msgs::msg::PoseStamped pose_to_pub;
                 pose_to_pub.header.frame_id = "AQUA_SLAM";
                 //pose_to_pub.header.stamp=ros::Time::now();
                 pose_to_pub.header.stamp = rclcpp::Time(pKF->mTimeStamp);
@@ -620,7 +620,7 @@ void RosHandling::PublishIntegration(Atlas *pAtlas)
             Eigen::Isometry3d T_w_cj_integration = T_w_c0 * T_d_c.inverse() * T_d0_dj * T_d_c;
             poses_integration.push_back(T_w_cj_integration);
 
-            geometry_msgs::PoseStamped pose_to_pub;
+            geometry_msgs::msg::PoseStamped pose_to_pub;
             pose_to_pub.header.frame_id = "AQUA_SLAM";
             //pose_to_pub.header.stamp=ros::Time::now();
             pose_to_pub.header.stamp = rclcpp::Time(pKF->mTimeStamp);
@@ -664,13 +664,13 @@ void RosHandling::PublishIntegration(Atlas *pAtlas)
             pose_to_pub.pose.orientation.w = rotation_q.w();
 
             // add a marker, set header and pose to header and pose of pose_to_pub, and add marker to all_markers
-            visualization_msgs::Marker marker;
+            visualization_msgs::msg::Marker marker;
             marker.header = pose_to_pub.header;
             marker.pose = pose_to_pub.pose;
             marker.ns = "AQUA_SLAM";
             marker.id = pKF->mnId;
-            marker.type = visualization_msgs::Marker::SPHERE;
-            marker.action = visualization_msgs::Marker::ADD;
+            marker.type = visualization_msgs::msg::Marker::SPHERE;
+            marker.action = visualization_msgs::msg::Marker::ADD;
             marker.scale.x = 0.02;
             marker.scale.y = 0.02;
             marker.scale.z = 0.02;
@@ -701,7 +701,7 @@ void RosHandling::PublishIntegration(Atlas *pAtlas)
 		Eigen::Isometry3d T_c0_cj = Eigen::Isometry3d::Identity();
 		cv::cv2eigen(T_c0_cj_cv,T_c0_cj.matrix());
 		Eigen::Isometry3d T_w_cj = mT_w_c0 * T_c0_cj;
-		geometry_msgs::PoseStamped pose_to_pub;
+		geometry_msgs::msg::PoseStamped pose_to_pub;
 		pose_to_pub.header.frame_id = "AQUA_SLAM";
 		pose_to_pub.header.stamp = rclcpp::Time(pKF->mTimeStamp);
 		pose_to_pub.pose.position.x = T_w_cj.translation().x();
@@ -734,7 +734,7 @@ void RosHandling::PublishLossKF(set<KeyFrame*, KFComparator> &loss_kfs)
         RCLCPP_INFO_STREAM(mpMainNode->get_logger(), "No loss KF");
         return;
     }
-    visualization_msgs::MarkerArray all_markers;
+    visualization_msgs::msg::MarkerArray all_markers;
     Eigen::Isometry3d T_b_c = Eigen::Isometry3d::Identity();
     cv::cv2eigen((*loss_kfs.begin())->mImuCalib.mT_gyro_c, T_b_c.matrix());
     Eigen::Isometry3d T_w_c0 = Eigen::Isometry3d::Identity();
@@ -751,7 +751,7 @@ void RosHandling::PublishLossKF(set<KeyFrame*, KFComparator> &loss_kfs)
         //		T_c0_cj_orb = T_c_enu.inverse() * T_c0_cj_orb * T_c_enu;
         Eigen::Isometry3d T_w_cj_orb = T_w_c0 * T_c0_cj_orb;
 
-        geometry_msgs::PoseStamped pose_to_pub;
+        geometry_msgs::msg::PoseStamped pose_to_pub;
         pose_to_pub.header.frame_id = "AQUA_SLAM";
         pose_to_pub.header.stamp = rclcpp::Time(pKF->mTimeStamp);
         pose_to_pub.pose.position.x = T_w_cj_orb.translation().x();
@@ -764,13 +764,13 @@ void RosHandling::PublishLossKF(set<KeyFrame*, KFComparator> &loss_kfs)
         pose_to_pub.pose.orientation.w = rotation_q.w();
 
         // add a marker, set header and pose to header and pose of pose_to_pub, and add marker to all_markers
-        visualization_msgs::Marker marker;
+        visualization_msgs::msg::Marker marker;
         marker.header = pose_to_pub.header;
         marker.pose = pose_to_pub.pose;
         marker.ns = "AQUA_SLAM";
         marker.id = pKF->mnId;
-        marker.type = visualization_msgs::Marker::SPHERE;
-        marker.action = visualization_msgs::Marker::ADD;
+        marker.type = visualization_msgs::msg::Marker::SPHERE;
+        marker.action = visualization_msgs::msg::Marker::ADD;
         marker.scale.x = 0.02;
         marker.scale.y = 0.02;
         marker.scale.z = 0.02;
@@ -786,7 +786,7 @@ void RosHandling::PublishLossKF(set<KeyFrame*, KFComparator> &loss_kfs)
 
 void RosHandling::PublishLossInteration(const Eigen::Isometry3d &T_e0_er, const Eigen::Isometry3d &T_e0_ec)
 {
-	geometry_msgs::PoseStamped pose_to_pub;
+	geometry_msgs::msg::PoseStamped pose_to_pub;
 	pose_to_pub.header.frame_id = "AQUA_SLAM";
 	pose_to_pub.header.stamp = mpMainNode->now();
 //	pose_to_pub.header.stamp = stamp;
@@ -822,7 +822,7 @@ void RosHandling::PublishLossInteration(const Eigen::Isometry3d &T_e0_er, const 
 }
 void RosHandling::PublishCamera(const Eigen::Isometry3d &T_c0_cj_orb, const rclcpp::Time &stamp)
 {
-	nav_msgs::Odometry pose_to_pub;
+	nav_msgs::msg::Odometry pose_to_pub;
 	pose_to_pub.header.frame_id = "AQUA_SLAM";
 	//pose_to_pub.header.stamp=ros::Time::now();
 	pose_to_pub.header.stamp = stamp;
@@ -847,7 +847,7 @@ bool RosHandling::SavePose(const std::shared_ptr<std_srvs::srv::Empty::Request> 
 {
 	string out_path;
 	// default value in case no parameter value was passed
-	mpMainNode->declare_parameter("traj_path", "")
+	mpMainNode->declare_parameter("traj_path", "");
 	// read out the parameter value. This will be the empty string only when no other definition was given.  
 	mpMainNode->get_parameter("traj_path", out_path);
 	// mp_system->SaveKeyFrameTrajectoryTUM(out_path + "KeyFrameTrajectory_TUM_Format");
@@ -874,7 +874,7 @@ void RosHandling::PublishImgMergeCandidate(const cv::Mat &img)
 	}
 	cv::Mat img_to_pub;
 	img.copyTo(img_to_pub);
-	std_msgs::Header header; // empty header
+	std_msgs::msg::Header header; // empty header
 	header.stamp = mpMainNode->now();  // the ros time. Should not matter since this topic is not subscribed to within the pipeline?
 //	cv::Mat img_with_info=mpFrameDrawer->DrawFrame(true);
 
@@ -883,7 +883,7 @@ void RosHandling::PublishImgMergeCandidate(const cv::Mat &img)
 	}
 	cv_bridge::CvImage img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, img_to_pub);
 
-	mp_img_merge_cond_pub->publish(img_bridge.toImageMsg());
+	mp_img_merge_cond_pub.publish(img_bridge.toImageMsg());
 }
 bool RosHandling::CalibrateDVLGyro(const std::shared_ptr<std_srvs::srv::Empty::Request> req,
               					   std::shared_ptr<std_srvs::srv::Empty::Response> res)

@@ -170,6 +170,7 @@ public:
 
 	void static DvlBeamOptimization(Map *pMap);
 	void static DvlBeamOptimization_dvl(Map *pMap);
+
 };
 
 } //namespace ORB_SLAM3

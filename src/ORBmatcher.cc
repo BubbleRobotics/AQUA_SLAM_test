@@ -693,24 +693,6 @@ int ORBmatcher::SearchByProjection(KeyFrame* pKF, cv::Mat Scw, const std::vector
         // Search in a radius
         const float radius = th*pKF->mvScaleFactors[nPredictedLevel];
 
-        // draw search range in the image
-//        cv::Mat img_show2=img_show.clone();
-//        cv::circle(img_show2,cv::Point(u,v),radius,cv::Scalar(255,0,0));
-//        stringstream ss;
-//    	ss<<"/home/da/project/Clion_ORB3/data/orbmatcher/"<<pKF->mnFrameId<<"u"<<u<<" v"<<v<<".png";
-//		cv::imwrite(ss.str(),img_show2);
-		// check whether all feature are assigned into grids
-//		int assigned_feature_count=0;
-//		for(int i=0; i<pKF->mnGridCols;i++)
-//		{
-//			for(int j=0; j<pKF->mnGridRows; j++)
-//			{
-//				assigned_feature_count += pKF->mGrid[i][j].size();
-//				if(pKF->NLeft!=-1)
-//					assigned_feature_count+=pKF->mGridRight[i][j].size();
-//			}
-//		}
-//		cout<<"all feature points: "<<pKF->mvKeysUn.size()<<"  assigned: "<<assigned_feature_count<<endl;
         const vector<size_t> vIndices = pKF->GetFeaturesInArea(u,v,radius,pKF->NLeft!=-1);
 
         if(vIndices.empty())

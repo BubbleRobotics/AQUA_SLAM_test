@@ -1227,6 +1227,9 @@ int Optimizer::PoseOptimization(Frame *pFrame)
 
 void Optimizer::PoseOnlyOptimizationDVLIMU(set<KeyFrame*, KFComparator> &loss_kfs, Atlas* pAtlas, int& optimized_kf_id)
 {
+	// For printing matrices etc. without the ROS1 macros
+	std::stringstream ss_print;
+
     // Setup optimizer
     g2o::SparseOptimizer optimizer;
     g2o::BlockSolverX::LinearSolverType *linearSolver;
@@ -1243,9 +1246,9 @@ void Optimizer::PoseOnlyOptimizationDVLIMU(set<KeyFrame*, KFComparator> &loss_kf
     // Set KeyFrame vertices (fixed poses and optimizable velocities)
     long maxKFid = (*loss_kfs.rbegin())->mnId;
 
-
-	stringstream ss;
-	ss << "DVL_IMU_PoseOnly optimization: " << endl;
+	ss_print.str("");
+	ss_print.clear();
+	ss_print << "DVL_IMU_PoseOnly optimization: " << endl;
     // iterate ls_kf from last to first, and add vertex to optimizer, and set the last 10 of them as fixed
     for (auto rit = loss_kfs.rbegin(); rit != loss_kfs.rend(); ++rit) {
         KeyFrame* pKFi = *rit;
@@ -1263,32 +1266,16 @@ void Optimizer::PoseOnlyOptimizationDVLIMU(set<KeyFrame*, KFComparator> &loss_kf
         VP->setId(pKFi->mnId);
         if (pKFi->mnId > (maxKFid-4)){
             VP->setFixed(false);
-            ss << "optimize: " << pKFi->mnId << endl;
+            ss_print << "optimize: " << pKFi->mnId << endl;
         }
         else {
             VP->setFixed(true);
-            ss << "fixed: " << pKFi->mnId << endl;
+            ss_print << "fixed: " << pKFi->mnId << endl;
         }
-        // if (pKFi->mnId == (*loss_kfs.rbegin())->mnId) {
-        //     VP->setFixed(false);
-		// 	ss << "optimizable: " << pKFi->mnId << endl;
-        // }
-        // else if (pKFi->mnId == (*loss_kfs.begin())->mnId) {
-        //     ss << "fixed: " << pKFi->mnId << endl;
-        //     VP->setFixed(true);
-        // }
-		// else if (pKFi->mnId > (optimized_kf_id-4)) {
-		// 	VP->setFixed(false);
-		// 	ss << "optimizable: " << pKFi->mnId << endl;
-		// }
-        // else{
-        //     VP->setFixed(true);
-        //     ss << "fixed: " << pKFi->mnId << endl;
-        // }
         optimizer.addVertex(VP);
     }
-    // ROS_INFO_STREAM(ss.str());
     optimized_kf_id = maxKFid;
+	ORB_SLAM3::Verbose::PrintMess(ss_print.str(), ORB_SLAM3::Verbose::VERBOSITY_DEBUG);
 
 
     // set<KeyFrame*, KFComparator>::reverse_iterator rit;
@@ -1339,7 +1326,9 @@ void Optimizer::PoseOnlyOptimizationDVLIMU(set<KeyFrame*, KFComparator> &loss_kf
         if (pKFi->GetMap() != (*loss_kfs.begin())->GetMap() && pKFi->mnId > (maxKFid-4)) {
             vpab.push_back(VA);
             VA->setFixed(true);
-			ORB_SLAM3::Verbose::PrintMess("optimizable bias: " << pKFi->mnId, ORB_SLAM3::Verbose::VERBOSITY_DEBUG);
+			ss_print.str(""); ss_print.clear();
+			ss_print << "optimizable bias: " << pKFi->mnId;
+			ORB_SLAM3::Verbose::PrintMess(ss_print.str(), ORB_SLAM3::Verbose::VERBOSITY_DEBUG);
         }
         optimizer.addVertex(VA);
 
@@ -1406,8 +1395,10 @@ void Optimizer::PoseOnlyOptimizationDVLIMU(set<KeyFrame*, KFComparator> &loss_kf
             if (pKFi->isBad() || pKFi->mPrevKF->mnId > maxKFid) {
                 continue;
             }
+			ss_print.str(""); ss_print.clear();
+			ss_print << "add dvl-imu edge: " << pKFi->mPrevKF->mnId << " -> " << pKFi->mnId;
 			ORB_SLAM3::Verbose::PrintMess(
-				"add dvl-imu edge: " << pKFi->mPrevKF->mnId << " -> " << pKFi->mnId, 
+				ss_print.str(), 
 				ORB_SLAM3::Verbose::VERBOSITY_DEBUG);
             VertexPoseDvlIMU *VP1 = dynamic_cast<VertexPoseDvlIMU *>(optimizer.vertex(pKFi->mPrevKF->mnId));
             //				g2o::HyperGraph::Vertex *VV1 = optimizer.vertex(maxKFid + (pKFi->mPrevKF->mnId) + 1);
@@ -1600,8 +1591,10 @@ void Optimizer::PoseOnlyOptimizationDVLIMU(set<KeyFrame*, KFComparator> &loss_kf
         }
         Eigen::Quaterniond Rwc(VP->estimate().Rwc);
         Eigen::Vector3d twc = VP->estimate().twc;
+		ss_print.str(""); ss_print.clear();
+		ss_print << "recover KF[" << pKFi->mnId << "] pose: from"<<pKFi->GetPoseInverse().col(3).rowRange(0,3).t()<<" to: " << twc.transpose();
         ORB_SLAM3::Verbose::PrintMess(
-				"recover KF[" << pKFi->mnId << "] pose: from"<<pKFi->GetPoseInverse().col(3).rowRange(0,3).t()<<" to: " << twc.transpose(), 
+				ss_print.str(), 
 				ORB_SLAM3::Verbose::VERBOSITY_DEBUG);
 		Eigen::Isometry3d Twc = Eigen::Isometry3d::Identity();
         Twc.pretranslate(twc);
@@ -1612,13 +1605,16 @@ void Optimizer::PoseOnlyOptimizationDVLIMU(set<KeyFrame*, KFComparator> &loss_kf
         Tcw_cv.convertTo(Tcw_cv, CV_32F);
         pKFi->SetPose(Tcw_cv);
     }
-    // ROS_INFO_STREAM(ss.str());
+    // ROS_INFO_STREAM(mSs.str());
 
 
 }
 
 void Optimizer::OptimizationDVLIMU(set<KeyFrame*, KFComparator> &loss_kfs, Atlas* pAtlas, double lamda_DVL)
 {
+	// For printing strings without the ROS1 macros
+	std::stringstream ss_print;
+
     unique_lock<shared_timed_mutex> lock(pAtlas->GetCurrentMap()->mMutexMapUpdate);
     // Setup optimizer
     g2o::SparseOptimizer optimizer;
@@ -1636,8 +1632,8 @@ void Optimizer::OptimizationDVLIMU(set<KeyFrame*, KFComparator> &loss_kfs, Atlas
     // Set KeyFrame vertices (fixed poses and optimizable velocities)
     long maxKFid = (*loss_kfs.rbegin())->mnId;
 
-    stringstream ss;
-    ss << "DVL_IMU optimization: " << endl;
+    ss_print.str(""); ss_print.clear();
+    ss_print << "DVL_IMU optimization: " << endl;
     // iterate ls_kf from last to first, and add vertex to optimizer
     for (auto pKFi :loss_kfs) {
         if (pKFi->isBad()){
@@ -1656,20 +1652,20 @@ void Optimizer::OptimizationDVLIMU(set<KeyFrame*, KFComparator> &loss_kfs, Atlas
         VP->setId(pKFi->mnId);
         if (pKFi->mnId == (*loss_kfs.begin())->mnId) {
             VP->setFixed(true);
-            ss << "fixed: " << pKFi->mnId << endl;
+            ss_print << "fixed: " << pKFi->mnId << endl;
         }
         else if(pKFi->GetMap()!=(*loss_kfs.begin())->GetMap()){
             VP->setFixed(false);
-            ss << "optimizable: " << pKFi->mnId << endl;
+            ss_print << "optimizable: " << pKFi->mnId << endl;
         }
         else{
             VP->setFixed(true);
-            ss << "fixed: " << pKFi->mnId << endl;
+            ss_print << "fixed: " << pKFi->mnId << endl;
         }
         optimizer.addVertex(VP);
     }
 	ORB_SLAM3::Verbose::PrintMess(
-				ss.str(), 
+				ss_print.str(), 
 				ORB_SLAM3::Verbose::VERBOSITY_NORMAL);
 
 
@@ -1839,8 +1835,10 @@ void Optimizer::OptimizationDVLIMU(set<KeyFrame*, KFComparator> &loss_kfs, Atlas
             if (pKFi->isBad() || pKFi->mPrevKF->mnId > maxKFid) {
                 continue;
             }
+			ss_print.str(""); ss_print.clear();
+			ss_print << "add dvl-imu edge: " << pKFi->mPrevKF->mnId << " -> " << pKFi->mnId;
 			ORB_SLAM3::Verbose::PrintMess(
-				"add dvl-imu edge: " << pKFi->mPrevKF->mnId << " -> " << pKFi->mnId, 
+				ss_print.str(), 
 				ORB_SLAM3::Verbose::VERBOSITY_DEBUG);
             VertexPoseDvlIMU *VP1 = dynamic_cast<VertexPoseDvlIMU *>(optimizer.vertex(pKFi->mPrevKF->mnId));
             //				g2o::HyperGraph::Vertex *VV1 = optimizer.vertex(maxKFid + (pKFi->mPrevKF->mnId) + 1);
@@ -1997,8 +1995,10 @@ void Optimizer::OptimizationDVLIMU(set<KeyFrame*, KFComparator> &loss_kfs, Atlas
             IMU::Bias b(v_ab->estimate().x(), v_ab->estimate().y(), v_ab->estimate().z(),
                         v_gb->estimate().x(), v_gb->estimate().y(), v_gb->estimate().z());
             pKFi->SetNewBias(b);
+			ss_print.str(""); ss_print.clear();
+			ss_print << "recover KF[" << pKFi->mnId << "] bias: " << b;
 			ORB_SLAM3::Verbose::PrintMess(
-				"recover KF[" << pKFi->mnId << "] bias: " << b, 
+				ss_print.str(), 
 				ORB_SLAM3::Verbose::VERBOSITY_DEBUG);
 
             // Pose
@@ -2008,8 +2008,10 @@ void Optimizer::OptimizationDVLIMU(set<KeyFrame*, KFComparator> &loss_kfs, Atlas
             }
             Eigen::Quaterniond Rwc(VP->estimate().Rwc);
             Eigen::Vector3d twc = VP->estimate().twc;
+			ss_print.str(""); ss_print.clear();
+			ss_print << "recover KF[" << pKFi->mnId << "] pose: from"<<pKFi->GetPoseInverse().col(3).rowRange(0,3).t()<<" to: " << twc.transpose();
             ORB_SLAM3::Verbose::PrintMess(
-				"recover KF[" << pKFi->mnId << "] pose: from"<<pKFi->GetPoseInverse().col(3).rowRange(0,3).t()<<" to: " << twc.transpose(), 
+				ss_print.str(), 
 				ORB_SLAM3::Verbose::VERBOSITY_DEBUG);
 			Eigen::Isometry3d Twc = Eigen::Isometry3d::Identity();
             Twc.pretranslate(twc);
@@ -6030,7 +6032,7 @@ void Optimizer::GlobalVAPoseGraphOptimization(KeyFrame* pCurKF, vector<KeyFrame*
         for (KeyFrame *pKFi: m->GetAllKeyFrames()) {
             if (pKFi->isBad()) {
 				ORB_SLAM3::Verbose::PrintMess(
-					"KF: "<<pKFi->mnId<<"is bad", 
+					"KF: " + std::to_string(pKFi->mnId) + "is bad", 
 					ORB_SLAM3::Verbose::VERBOSITY_DEBUG);
                 continue;
             }
@@ -6166,7 +6168,7 @@ void Optimizer::GlobalVAPoseGraphOptimization(KeyFrame* pCurKF, vector<KeyFrame*
                 }
             }
 			ORB_SLAM3::Verbose::PrintMess(
-					"add multi-map constrain for global pose graph, from ID: "<<pKFi->mnId<<"to ID: "<<pKFn->mnId, 
+					"add multi-map constrain for global pose graph, from ID: " + std::to_string(pKFi->mnId) + "to ID: " + std::to_string(pKFn->mnId), 
 					ORB_SLAM3::Verbose::VERBOSITY_NORMAL);
         }
 
@@ -9491,7 +9493,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pMainKF,
 		if (dist > 1.0) {
 			if (bShowImages) {
 				string strNameFile = pKFi->mNameFile;
-				cv::Mat imLeft = cv::imread(strNameFile, CV_LOAD_IMAGE_UNCHANGED);
+				cv::Mat imLeft = cv::imread(strNameFile, cv::IMREAD_UNCHANGED);
 
 				cv::cvtColor(imLeft, imLeft, CV_GRAY2BGR);
 
@@ -12509,6 +12511,8 @@ void Optimizer::DvlGyroInitOptimization3(Map *pMap,
                                          bool bMono,
                                          float priorG)
 {
+	std::stringstream ss_print;
+
 	Verbose::PrintMess("inertial optimization", Verbose::VERBOSITY_NORMAL);
 	int its = 200; // Check number of iterations
 	long unsigned int maxKFid = pMap->GetMaxKFid();
@@ -12727,9 +12731,10 @@ void Optimizer::DvlGyroInitOptimization3(Map *pMap,
 	Eigen::Vector3d err_t_dvl_c = T_dvl_c.translation() - T_dvl_c_gt.translation();
 	Eigen::Vector3d err_t_gyros_c = T_gyros_c.translation() - T_gyros_c_gt.translation();
 
-	stringstream ss;
-	ss << "result_" << ros::Time::now().toNSec() << ".txt";
-	ofstream f("/home/da/project/ros/orb_dvl2_ws/src/dvl2/calibration_results/" + ss.str());
+	ss_print.str(""); ss_print.clear();
+	uint64_t now_ns = rclcpp::Clock().now().nanoseconds();
+	ss_print << "result_" << now_ns << ".txt";
+	ofstream f("/home/da/project/ros/orb_dvl2_ws/src/dvl2/calibration_results/" + ss_print.str());
 
 	if (f.is_open()) {
 		f << fixed;
@@ -12782,6 +12787,9 @@ void Optimizer::DvlGyroInitOptimization3(Map *pMap,
 
 void Optimizer::DvlGyroInitOptimization5(Map *pMap, Eigen::Vector3d &bg, bool bMono, float priorG)
 {
+	// stringstream printing replacing ros1 macros
+	std::stringstream ss_print;
+
 	Verbose::PrintMess("inertial optimization", Verbose::VERBOSITY_NORMAL);
 	int its = 200; // Check number of iterations
 	long unsigned int maxKFid = pMap->GetMaxKFid();
@@ -13012,9 +13020,10 @@ void Optimizer::DvlGyroInitOptimization5(Map *pMap, Eigen::Vector3d &bg, bool bM
 	Eigen::Vector3d err_t_dvl_c = T_dvl_c.translation() - T_dvl_c_gt.translation();
 	Eigen::Vector3d err_t_gyros_c = T_gyros_c.translation() - T_gyros_c_gt.translation();
 
-	stringstream ss;
-	ss << "result_" << ros::Time::now().toNSec() << ".txt";
-	ofstream f("/home/da/project/ros/orb_dvl2_ws/src/dvl2/calibration_results/" + ss.str());
+	ss_print.str(""); ss_print.clear();
+	uint64_t now_ns = rclcpp::Clock().now().nanoseconds();
+	ss_print << "result_" << now_ns << ".txt";
+	ofstream f("/home/da/project/ros/orb_dvl2_ws/src/dvl2/calibration_results/" + ss_print.str());
 
 	if (f.is_open()) {
 		f << fixed;
@@ -13069,6 +13078,8 @@ void Optimizer::DvlGyroInitOptimization5(Map *pMap, Eigen::Vector3d &bg, bool bM
 
 void Optimizer::DvlGyroInitOptimization6(Map *pMap, Eigen::Vector3d &bg, bool bMono, float priorG)
 {
+	std::stringstream ss_print;
+
 	Verbose::PrintMess("inertial optimization", Verbose::VERBOSITY_NORMAL);
 	int its = 200; // Check number of iterations
 	long unsigned int maxKFid = pMap->GetMaxKFid();
@@ -13272,11 +13283,13 @@ void Optimizer::DvlGyroInitOptimization6(Map *pMap, Eigen::Vector3d &bg, bool bM
 		pkf->mpDvlPreintegrationKeyFrame->v_dk_visual = v_dk;
 
 //		cout << "kf id: " << pkf->mnId << " gyros bias: " << bg.transpose() << endl;
-		ORB_SLAM3::Verbose::PrintMess(
-					"beam calibration: KeyFrame id:<<" << pkf->mnId << " dvl velocity: "
+		ss_print.str(""); ss_print.clear();
+		ss_print << "beam calibration: KeyFrame id:<<" << pkf->mnId << " dvl velocity: "
 		                                                   << pkf->mpDvlPreintegrationKeyFrame->v_dk_dvl
 		                                                   << " visual velocity: "
-		                                                   << pkf->mpDvlPreintegrationKeyFrame->v_dk_visual.transpose(), 
+		                                                   << pkf->mpDvlPreintegrationKeyFrame->v_dk_visual.transpose();
+		ORB_SLAM3::Verbose::PrintMess(
+					ss_print.str(), 
 					ORB_SLAM3::Verbose::VERBOSITY_NORMAL);
 	}
 
@@ -13537,6 +13550,9 @@ void Optimizer::DvlGyroInitOptimization4(Map *pMap,
 
 double Optimizer::DvlIMUInitOptimization(Map *pMap, double priori_g, double priori_a)
 {
+	// Stringstream printing to replace ros1 macros
+	std::stringstream ss_print;
+
 	// Verbose::PrintMess("inertial optimization", Verbose::VERBOSITY_NORMAL);
 	int its = 200; // Check number of iterations
 	long unsigned int maxKFid = pMap->GetMaxKFid();
@@ -13657,12 +13673,13 @@ double Optimizer::DvlIMUInitOptimization(Map *pMap, double priori_g, double prio
             g2o::HyperGraph::Vertex *VR_w_b0 = optimizer.vertex((maxKFid + 1)*4+2);
 
 			if (!VP1 || !VP2 || !VV1 || !VV2 || !VG || !VA  || !VT_d_c || !VT_g_d || !VR_w_b0) {
-
-				ORB_SLAM3::Verbose::PrintMess(
-					"ERROR: DVL IMU initialzation Error, KF1 ID:"<< pKFi->mPrevKF->mnId << "KF2 ID:" << pKFi->mnId << "VP1: " << VP1 <<", VP2: " << VP2 << ", VV1: " << VV1
+				ss_print.str(""); ss_print.clear();
+				ss_print << "ERROR: DVL IMU initialzation Error, KF1 ID:"<< pKFi->mPrevKF->mnId << "KF2 ID:" << pKFi->mnId << "VP1: " << VP1 <<", VP2: " << VP2 << ", VV1: " << VV1
 								 << ", VV2: " << VV2 << ", VG: " << VG << ", VA: " << VA
 								 << ", VT_d_c: " << VT_d_c << ", VT_g_d: " << VT_g_d
-								 << ", VR_w_b0: " << VR_w_b0, 
+								 << ", VR_w_b0: " << VR_w_b0;
+				ORB_SLAM3::Verbose::PrintMess(
+					ss_print.str(), 
 					ORB_SLAM3::Verbose::VERBOSITY_QUIET);
 				continue;
                 // assert(-1);
@@ -13724,11 +13741,16 @@ double Optimizer::DvlIMUInitOptimization(Map *pMap, double priori_g, double prio
 
     auto bias_g = VG->estimate();
     auto bias_a = VA->estimate();
+
+	ss_print.str(""); ss_print.clear();
+	ss_print << "bias_g: "<< bias_g.transpose();
 	ORB_SLAM3::Verbose::PrintMess(
-					"bias_g: "<< bias_g.transpose(), 
+					ss_print.str(), 
 					ORB_SLAM3::Verbose::VERBOSITY_NORMAL);
+	ss_print.str(""); ss_print.clear();
+	ss_print << "bias_a: " << bias_a.transpose();
 	ORB_SLAM3::Verbose::PrintMess(
-					"bias_a: "<< bias_a.transpose(), 
+					ss_print.str(), 
 					ORB_SLAM3::Verbose::VERBOSITY_NORMAL);
 
     double total_dvl = 0;
@@ -13738,10 +13760,10 @@ double Optimizer::DvlIMUInitOptimization(Map *pMap, double priori_g, double prio
     }
     avg_dvl = total_dvl/dvlimu_edges.size();
 	ORB_SLAM3::Verbose::PrintMess(
-					"avg_dvl: "<< avg_dvl, 
+					"avg_dvl: " + std::to_string(avg_dvl), 
 					ORB_SLAM3::Verbose::VERBOSITY_NORMAL);
 	ORB_SLAM3::Verbose::PrintMess(
-					"total_dvl:"<< total_dvl, 
+					"total_dvl:" + std::to_string(total_dvl), 
 					ORB_SLAM3::Verbose::VERBOSITY_NORMAL);
     // VGDir->setFixed(true);
     // e_bias->setLevel(0);
@@ -13787,6 +13809,9 @@ double Optimizer::DvlIMUInitOptimization(Map *pMap, double priori_g, double prio
 
 void Optimizer::DvlIMURefineOptimization(Atlas* pAtlas)
 {
+	// Necessary for stringstream printing instead of using ROS2 macros
+	std::stringstream ss_print;
+
     g2o::SparseOptimizer optimizer;
     g2o::BlockSolverX::LinearSolverType *linearSolver;
     linearSolver = new g2o::LinearSolverEigen<g2o::BlockSolverX::PoseMatrixType>();
@@ -13819,10 +13844,10 @@ void Optimizer::DvlIMURefineOptimization(Atlas* pAtlas)
     VGDir->setFixed(false);
     optimizer.addVertex(VGDir);
 
-    stringstream ss;
-    ss<<"Gravity refine optimization: \n";
+    ss_print.str(""); ss_print.clear();
+    ss_print<<"Gravity refine optimization: \n";
     for(auto pMap:pAtlas->GetAllMaps()){
-        ss << "map id: " << pMap->GetId() << endl;
+        ss_print << "map id: " << pMap->GetId() << endl;
         const vector<KeyFrame *> vpKFs = pMap->GetAllKeyFrames();
 
         // Set KeyFrame vertices (fixed poses and optimizable velocities)
@@ -13880,7 +13905,7 @@ void Optimizer::DvlIMURefineOptimization(Atlas* pAtlas)
                 if (!pKFi->mpDvlPreintegrationKeyFrame) {
                     std::cout << "Not preintegrated measurement" << std::endl;
                 }
-                ss << "Add gravity edge from KF[" << pKFi->mnId << "] to KF{" << pKFi->mPrevKF->mnId<<"]"<< endl;
+                ss_print << "Add gravity edge from KF[" << pKFi->mnId << "] to KF{" << pKFi->mPrevKF->mnId<<"]"<< endl;
                 // pKFi->mpDvlPreintegrationKeyFrame->SetNewBias(pKFi->mPrevKF->GetImuBias());
                 VertexPoseDvlIMU *VP1 = dynamic_cast<VertexPoseDvlIMU *>(optimizer.vertex(pKFi->mPrevKF->mnId));
                 //				g2o::HyperGraph::Vertex *VV1 = optimizer.vertex(maxKFid + (pKFi->mPrevKF->mnId) + 1);
@@ -13952,7 +13977,7 @@ void Optimizer::DvlIMURefineOptimization(Atlas* pAtlas)
     optimizer.initializeOptimization(0);
     optimizer.optimize(5);
 	ORB_SLAM3::Verbose::PrintMess(
-					ss.str(), 
+					ss_print.str(), 
 					ORB_SLAM3::Verbose::VERBOSITY_DEBUG);
     // for(VertexGyroBias* v:vpgb){
     //     v->setFixed(false);
@@ -14063,19 +14088,21 @@ void Optimizer::DvlBeamOptimization(Map *pMap)
 	Eigen::Matrix<double, 8, 1> r_opt = v_beam_ori->estimate();
 
 	ORB_SLAM3::Verbose::PrintMess(
-		"DVL Calibration(visual data):\nbeam1_theta=" << r_opt(0) / M_PI * 180.0 << " beam1_phi=" << r_opt(1) / M_PI * 180.0
-								<< "\nbeam2_theta=" << r_opt(2) / M_PI * 180.0 << " beam2_phi="
-								<< r_opt(3) / M_PI * 180.0
-								<< "\nbeam3_theta=" << r_opt(4) / M_PI * 180.0 << " beam3_phi="
-								<< r_opt(5) / M_PI * 180.0
-								<< "\nbeam4_theta=" << r_opt(6) / M_PI * 180.0 << " beam4_phi="
-								<< r_opt(7) / M_PI * 180.0, 
+		"DVL Calibration(visual data):\nbeam1_theta=" + std::to_string(r_opt(0) / M_PI * 180.0) + " beam1_phi=" + std::to_string(r_opt(1) / M_PI * 180.0)
+								+ "\nbeam2_theta=" + std::to_string(r_opt(2) / M_PI * 180.0) + " beam2_phi="
+								+ std::to_string(r_opt(3) / M_PI * 180.0)
+								+ "\nbeam3_theta=" + std::to_string(r_opt(4) / M_PI * 180.0) + " beam3_phi="
+								+ std::to_string(r_opt(5) / M_PI * 180.0)
+								+ "\nbeam4_theta=" + std::to_string(r_opt(6) / M_PI * 180.0) + " beam4_phi="
+								+ std::to_string(r_opt(7) / M_PI * 180.0), 
 		ORB_SLAM3::Verbose::VERBOSITY_NORMAL);
 
 }
 
 void Optimizer::DvlBeamOptimization_dvl(Map *pMap)
 {
+	std::stringstream ss_print;
+
 	Verbose::PrintMess("inertial optimization", Verbose::VERBOSITY_NORMAL);
 	int its = 200; // Check number of iterations
 	long unsigned int maxKFid = pMap->GetMaxKFid();
@@ -14155,16 +14182,16 @@ void Optimizer::DvlBeamOptimization_dvl(Map *pMap)
 	optimizer.optimize(10);
 
 	Eigen::Matrix<double, 8, 1> r_opt = v_beam_ori->estimate();
-
-	ORB_SLAM3::Verbose::PrintMess(
-		"DVL Calibration(DVL data):\nbeam1_theta=" << r_opt(0) / M_PI * 180.0 << " beam1_phi=" << r_opt(1) / M_PI * 180.0
+	
+	ss_print.str(""); ss_print.clear();
+	ss_print << "DVL Calibration(DVL data):\nbeam1_theta=" << r_opt(0) / M_PI * 180.0 << " beam1_phi=" << r_opt(1) / M_PI * 180.0
 		                                 << "\nbeam2_theta=" << r_opt(2) / M_PI * 180.0 << " beam2_phi="
 		                                 << r_opt(3) / M_PI * 180.0
 		                                 << "\nbeam3_theta=" << r_opt(4) / M_PI * 180.0 << " beam3_phi="
 		                                 << r_opt(5) / M_PI * 180.0
 		                                 << "\nbeam4_theta=" << r_opt(6) / M_PI * 180.0 << " beam4_phi="
-		                                 << r_opt(7) / M_PI * 180.0, 
-		ORB_SLAM3::Verbose::VERBOSITY_NORMAL);
+		                                 << r_opt(7) / M_PI * 180.0;
+	ORB_SLAM3::Verbose::PrintMess(ss_print.str(), ORB_SLAM3::Verbose::VERBOSITY_NORMAL);
 
 
 

@@ -165,8 +165,9 @@ void LocalMapping::Run()
                                                                       num_FixedKF_BA,
                                                                       mpTracker->mlamda_DVL,
                                                                       mpTracker->mlamda_visual);
-
-						Verbose::PrintMess("LocalBA for KF["<<mpCurrentKeyFrame->mnId<<"] is done", Verbose::VERBOSITY_DEBUG);
+						std::stringstream ss;
+						ss << "LocalBA for KF[" << mpCurrentKeyFrame->mnId << "] is done";
+						Verbose::PrintMess(ss.str(), Verbose::VERBOSITY_DEBUG);
 						mpTracker->UpdateFrameDVLGyro(mpCurrentKeyFrame->GetImuBias(),mpCurrentKeyFrame);
 
                     }
@@ -1807,7 +1808,7 @@ std::pair<double,double> LocalMapping::GetTravelDistance()
         R_dis += abs(R_ci_cj_so3.y());
         T_c0_ci = T_c0_cj;
     }
-	Verbose::PrintMess("travel distance(t R): "<<t_dis<<" "<<R_dis, Verbose::VERBOSITY_NORMAL);
+	Verbose::PrintMess("travel distance(t R): " + std::to_string(t_dis) + " " + std::to_string(R_dis), Verbose::VERBOSITY_NORMAL);
     return std::make_pair(t_dis,R_dis);
 }
 

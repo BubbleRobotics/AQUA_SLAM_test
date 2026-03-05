@@ -31,7 +31,7 @@ namespace ORB_SLAM3
 
         mDepthConfPub = it.advertise("/AQUA_SLAM/dense_mapper/depth_cpnfidence", 10);
 
-        pointcloud_pub = mpMainNode->create_publisher<sensor_msgs::msg::PointCloud2>("/AQUA_SLAM/dense_map", 10);
+        mMapPub = mpMainNode->create_publisher<sensor_msgs::msg::PointCloud2>("/AQUA_SLAM/dense_map", 10);
 
         FileStorage fs(settingFile, FileStorage::READ);
         FileNode node = fs["DenseMapper"];
@@ -263,9 +263,9 @@ namespace ORB_SLAM3
         header.stamp = mpMainNode->now();
 
         cv_bridge::CvImage img_bridge = cv_bridge::CvImage(header, "mono8", disp);
-        mDepthPub->publish(img_bridge.toImageMsg());
+        mDepthPub.publish(img_bridge.toImageMsg());
         img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::MONO8, disp_conf);
-        mDepthConfPub->publish(img_bridge.toImageMsg());
+        mDepthConfPub.publish(img_bridge.toImageMsg());
 
         cv::Mat disp_f;
         disp.convertTo(disp_f,CV_32F);
@@ -419,14 +419,16 @@ namespace ORB_SLAM3
         {
             std::lock_guard<std::mutex> lock(mKFMutex);
 
-            for (auto it = mKFWithPointCloud.begin(); it != mKFWithPointCloud.end())
+            for (auto it = mKFWithPointCloud.begin(); it != mKFWithPointCloud.end();)
             {
-                if (kf_pointcloud.first->isBad()) {
+                if (it->first->isBad()) {
                     RCLCPP_DEBUG_STREAM(mpMainNode->get_logger(), "DenserMapper: find bad KF, remove and skip");
-                    mKFWithPointCloud.erase(kf_pointcloud.first);
+                    it = mKFWithPointCloud.erase(it);   // erase returns next iterator
                     return;
-                else:
+                }
+                else {
                     ++it;
+                }
             }
         }
         PublishMap();

@@ -1524,7 +1524,7 @@ DvlGyroOptimizer::LocalDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, bool
             }
             e_bias->setInformation(info_acc_bias);
             // if(info_acc_bias(0,0)==0)
-            Verbose::PrintMess("KF["<<pKFi->mnId<<"] acc bias info:\n"<<info_acc_bias, Verbose::VERBOSITY_DEBUG);
+
             optimizer.addEdge(e_bias);
 
             EdgeGyroRW* eg_bias = new EdgeGyroRW();
@@ -1544,8 +1544,6 @@ DvlGyroOptimizer::LocalDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, bool
 //                 rk->setDelta(sqrt(16.92));
             }
             eg_bias->setInformation(info_gyro_bias);
-            // if(info_gyro_bias(0,0)==0)
-            Verbose::PrintMess("KF["<<pKFi->mnId<<"] gyro bias info:\n"<<info_gyro_bias, Verbose::VERBOSITY_DEBUG);
 
             optimizer.addEdge(eg_bias);
 
@@ -1569,7 +1567,6 @@ DvlGyroOptimizer::LocalDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, bool
             // if(!pAtlas->IsIMUCalibrated()){
             //     eDVL->setLevel(1);
             // }
-            Verbose::PrintMess("DVL edge info:\n"<<info_DVL, Verbose::VERBOSITY_DEBUG);
             optimizer.addEdge(eDVL);
 
 
@@ -1607,7 +1604,6 @@ DvlGyroOptimizer::LocalDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, bool
             // info_DI(1,1) = 1e10; // before 10_24
             // ROS_INFO_STREAM("info: "<<info_DI);
             eG->setInformation(info_DI);
-            Verbose::PrintMess("IMU edge info:\n"<<info_DI, Verbose::VERBOSITY_DEBUG);
             dvlimu_edges.push_back(eG);
             optimizer.addEdge(eG);
         }
@@ -1734,8 +1730,10 @@ DvlGyroOptimizer::LocalDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, bool
         IMU::Bias b(v_ab->estimate().x(), v_ab->estimate().y(), v_ab->estimate().z(),
                     v_gb->estimate().x(), v_gb->estimate().y(), v_gb->estimate().z());
         pKFi->SetNewBias(b);
+        std::stringstream ss_print;
+        ss_print << "KF["<<pKFi->mnId<<"] bias[acc gyros]: "<<v_ab->estimate().transpose()<<" " << v_gb->estimate().transpose();
         Verbose::PrintMess(
-            "KF["<<pKFi->mnId<<"] bias[acc gyros]: "<<v_ab->estimate().transpose()<<" "<<v_gb->estimate().transpose(), 
+            ss_print.str(), 
             Verbose::VERBOSITY_DEBUG
         );
         // ss<<"KF["<<pKFi->mnId<<"] bias[acc gyros]: "<<v_ab->estimate().transpose()<<" "<<v_gb->estimate().transpose()<<"\n";
@@ -2136,7 +2134,7 @@ void DvlGyroOptimizer::LocalDVLIMUBundleAdjustment2(Atlas* pAtlas, KeyFrame* pKF
         }
     }
     Verbose::PrintMess(
-        "visual edge size: "<<(mono_edges.size()+stereo_edges.size()),
+        "visual edge size: " + std::to_string(mono_edges.size()+stereo_edges.size()),
         Verbose::VERBOSITY_NORMAL
     );
 
@@ -2473,6 +2471,9 @@ void DvlGyroOptimizer::FullDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, 
                                                   const int &num_fixedKF, double lamda_DVL, double lamda_visual)
 
 {
+    // For printing without the ROS1 macros
+    std::stringstream ss_print;
+
     Map *pCurrentMap = pKF->GetMap();
     int Nd = pCurrentMap->KeyFramesInMap();// number of keyframes in current map
     const unsigned long maxKFid = pKF->mnId;
@@ -2554,7 +2555,7 @@ void DvlGyroOptimizer::FullDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, 
     }
     int N_map_points = LocalMapPoints.size();
     Verbose::PrintMess(
-        "map point to optimize: "<<N_map_points,
+        "map point to optimize: " + std::to_string(N_map_points),
         Verbose::VERBOSITY_NORMAL
     );
     //	cout << "map point to optimize: " << N_map_points << endl;
@@ -2625,7 +2626,7 @@ void DvlGyroOptimizer::FullDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, 
         VP->setFixed(true);
         optimizer.addVertex(VP);
         Verbose::PrintMess(
-            "fixed KF: "<<pKFi->mnId,
+            "fixed KF: " + std::to_string(pKFi->mnId),
             Verbose::VERBOSITY_NORMAL
         );
     }
@@ -2830,7 +2831,7 @@ void DvlGyroOptimizer::FullDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, 
         }
     }
     Verbose::PrintMess(
-        "visual edge size: "<<(mono_edges.size()+stereo_edges.size()),
+        "visual edge size: " + std::to_string(mono_edges.size()+stereo_edges.size()),
         Verbose::VERBOSITY_NORMAL
     );
 
@@ -2906,8 +2907,10 @@ void DvlGyroOptimizer::FullDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, 
             }
             e_bias->setInformation(info_acc_bias);
             // if(info_acc_bias(0,0)==0)
+            ss_print.str(""); ss_print.clear();
+            ss_print << "KF["<<pKFi->mnId<<"] acc bias info:\n"<<info_acc_bias;
             Verbose::PrintMess(
-                "KF["<<pKFi->mnId<<"] acc bias info:\n"<<info_acc_bias,
+                ss_print.str(),
                 Verbose::VERBOSITY_DEBUG
             );
             optimizer.addEdge(e_bias);
@@ -2930,8 +2933,10 @@ void DvlGyroOptimizer::FullDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, 
             }
             eg_bias->setInformation(info_gyro_bias);
             // if(info_gyro_bias(0,0)==0)
+            ss_print.str(""); ss_print.clear();
+            ss_print << "KF["<<pKFi->mnId<<"] gyro bias info:\n"<<info_gyro_bias;
             Verbose::PrintMess(
-                "KF["<<pKFi->mnId<<"] gyro bias info:\n"<<info_gyro_bias,
+                ss_print.str(),
                 Verbose::VERBOSITY_DEBUG
             );
 
@@ -2954,8 +2959,10 @@ void DvlGyroOptimizer::FullDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, 
             info_DVL.block(3,3,3,3) = Eigen::Matrix3d::Identity() * 1e2;
             info_DVL.block(6,6,3,3) = Eigen::Matrix3d::Identity() * 1e2;
             eDVL->setInformation(info_DVL);
+            ss_print.str(""); ss_print.clear();
+            ss_print << "DVL edge info:\n"<<info_DVL;
             Verbose::PrintMess(
-                "DVL edge info:\n"<<info_DVL,
+                ss_print.str(),
                 Verbose::VERBOSITY_DEBUG
             );
             optimizer.addEdge(eDVL);
@@ -2995,8 +3002,10 @@ void DvlGyroOptimizer::FullDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, 
             // info_DI(1,1) = 1e10; // before 10_24
             // ROS_INFO_STREAM("info: "<<info_DI);
             eG->setInformation(info_DI);
+            ss_print.str(""); ss_print.clear();
+            ss_print << "IMU edge info:\n"<<info_DI;
             Verbose::PrintMess(
-                "IMU edge info:\n"<<info_DI,
+                ss_print.str(),
                 Verbose::VERBOSITY_DEBUG
             );
             dvlimu_edges.push_back(eG);
@@ -3160,8 +3169,10 @@ void DvlGyroOptimizer::FullDVLIMUBundleAdjustment(Atlas* pAtlas, KeyFrame* pKF, 
     }
     pMap->IncreaseChangeIndex();
     // ROS_INFO_STREAM("Map change after BA: "<<pMap->GetMapChangeIndex());
+    ss_print.str(""); ss_print.clear();
+    ss_print << "Full BA upto KF["<<pKF->mnId<<"] done";
     Verbose::PrintMess(
-        "Full BA upto KF["<<pKF->mnId<<"] done",
+        ss_print.str(),
         Verbose::VERBOSITY_NORMAL
     );
 }

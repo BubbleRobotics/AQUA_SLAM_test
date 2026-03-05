@@ -4,10 +4,13 @@
 #ifndef DENSEMAPPER_H
 #define DENSEMAPPER_H
 
+#include <memory>
+
 #include <rclcpp/rclcpp.hpp>
 // #include <rosbag/bag.h>
 // #include <rosbag/view.h>
 #include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
 #include <image_transport/image_transport.hpp>
 #include <image_transport/subscriber_filter.hpp>
 #include <message_filters/sync_policies/approximate_time.h>
@@ -125,6 +128,11 @@ public:
 	//ros publisher
 	image_transport::Publisher mDepthPub;
 	image_transport::Publisher mDepthConfPub;
+
+	// static_assert(std::is_class<sensor_msgs::msg::PointCloud2>::value, "Not a class");
+
+	sensor_msgs::msg::PointCloud2 test_msg;
+
 	rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr mMapPub;
 
 	bool mStop = false;

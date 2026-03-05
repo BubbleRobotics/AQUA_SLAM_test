@@ -120,6 +120,7 @@ target_link_libraries(${PROJECT_NAME}
   g2o
   octomap
   ${Pangolin_LIBRARIES}
+  # sensor_msgs::sensor_msgs
 )
 
 # Include the ros libraries that are needed
@@ -163,6 +164,8 @@ target_link_libraries(${PROJECT_NAME}_Optimization
   DBoW2
   g2o
   sophus
+  # sensor_msgs::sensor_msgs
+  # sensor_msgs::sensor_msgs__rosidl_typesupport_cpp
 )
 
 # Include the ros libraries that are needed
@@ -195,7 +198,8 @@ target_link_libraries(stereo_dvl2
 )
 
 # Include the ros libraries that are needed
-ament_target_dependencies(stereo_dvl2
+ament_target_dependencies(
+  stereo_dvl2
   rclcpp
   sensor_msgs
   std_msgs
@@ -204,6 +208,7 @@ ament_target_dependencies(stereo_dvl2
   nav_msgs
   tf2
   tf2_ros
+  # sensor_msgs::sensor_msgs__rosidl_typesupport_cpp
 )
 
 # ------------------------------------------------------------
