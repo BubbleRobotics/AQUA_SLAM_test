@@ -108,6 +108,7 @@ add_library(${PROJECT_NAME} SHARED
     src/DvlGyroOptimizer.cpp
     src/FrameDrawer.cc
     src/Initializer.cc
+    src/Integrator.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${AQUA_SLAM_INCLUDES})
