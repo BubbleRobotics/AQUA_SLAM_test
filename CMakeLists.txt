@@ -107,6 +107,7 @@ add_library(${PROJECT_NAME} SHARED
     src/LocalMapping.cc
     src/DvlGyroOptimizer.cpp
     src/FrameDrawer.cc
+    src/Initializer.cc
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${AQUA_SLAM_INCLUDES})

@@ -18,13 +18,13 @@
 
 #include "Initializer.h"
 
-#include "Thirdparty/DBoW2/DUtils/Random.h"
+#include "DUtils/Random.h"  // in DBoW2
 
 #include "Optimizer.h"
 #include "ORBmatcher.h"
 
 #include <thread>
-#include <include/CameraModels/Pinhole.h>
+#include <Pinhole.h>  // in CameraModels
 
 namespace ORB_SLAM3
 {
