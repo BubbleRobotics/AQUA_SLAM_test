@@ -20,8 +20,8 @@
 #ifndef TRACKING_H
 #define TRACKING_H
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/features2d/features2d.hpp>
+#include<opencv2/core/core.hpp>
+#include<opencv2/features2d/features2d.hpp>
 #include <opencv2/video/tracking.hpp>
 
 #include <rclcpp/rclcpp.hpp>
@@ -70,6 +70,7 @@ public:
 	         DenseMapper *pDenseMapper,
 	         const string &strSettingPath,
 	         const int sensor,
+			 rclcpp::Node::SharedPtr pNode,
 	         const string &_nameSeq = std::string());
 
 	~Tracking();
@@ -269,6 +270,9 @@ public:
 	double mlamda_DVL;
 	double mlamda_DVL_debug;
 	double mDVL_func_debug;
+
+	// Ros2 node being spun in main
+	rclcpp::Node::SharedPtr mpMainNode;
 
 protected:
 

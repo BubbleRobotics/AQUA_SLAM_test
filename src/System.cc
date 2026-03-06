@@ -224,6 +224,7 @@ else
 	                         mpDenseMapper,
 	                         strSettingsFile,
 	                         mSensor,
+							 mpMainNode,
 	                         strSequence);
 
 	//Initialize the Local Mapping thread and launch

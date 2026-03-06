@@ -12,23 +12,18 @@
 #include <opencv2/features2d.hpp>
 namespace ORB_SLAM3
 {
-LKTracker::LKTracker()
+LKTracker::LKTracker(rclcpp::Node::SharedPtr pNode)
+: mNode(pNode)
 {
-	rclcpp::Node::SharedPtr mNode = rclcpp::Node::make_shared("lk_tracker_node");
 	image_transport::ImageTransport it(mNode);
-	image_transport::Publisher track_pub = it.advertise("/lk_tracker/track_img", 10);
-	pTrack_img_pub =
-		std::shared_ptr<image_transport::Publisher>(std::make_shared<image_transport::Publisher>(track_pub));
+	mTrack_img_pub = it.advertise("/lk_tracker/track_img", 10);
 }
 
-LKTracker::LKTracker(bool bStereo)
-	: stereo_cam(bStereo)
+LKTracker::LKTracker(bool bStereo, rclcpp::Node::SharedPtr pNode)
+	: stereo_cam(bStereo), mNode(pNode)
 {
-	rclcpp::Node::SharedPtr mNode = rclcpp::Node::make_shared("lk_tracker_node");
 	image_transport::ImageTransport it(mNode);
-	image_transport::Publisher track_pub = it.advertise("/lk_tracker/track_img", 10);
-	pTrack_img_pub =
-		std::shared_ptr<image_transport::Publisher>(std::make_shared<image_transport::Publisher>(track_pub));
+	mTrack_img_pub = it.advertise("/lk_tracker/track_img", 10);
 }
 
 void LKTracker::drawTrack(const cv::Mat &imLeft,
@@ -46,7 +41,7 @@ void LKTracker::drawTrack(const cv::Mat &imLeft,
 	else {
 		imTrack = imLeft.clone();
 	}
-	cv::cvtColor(imTrack, imTrack, CV_GRAY2RGB);
+	cv::cvtColor(imTrack, imTrack, cv::COLOR_GRAY2RGB);
 
 	for (size_t j = 0; j < curLeftPts.size(); j++) {
 		double len = std::min(1.0, 1.0 * track_cnt[j] / 20);
@@ -83,9 +78,9 @@ void LKTracker::drawTrack(const cv::Mat &imLeft,
 	//cv::Mat imCur2Compress;
 	//cv::resize(imCur2, imCur2Compress, cv::Size(cols, rows / 2));
 	std_msgs::msg::Header header; // empty header
-	header.stamp = rclcpp::Clock().now();
+	header.stamp = mNode->get_clock()->now();
 	cv_bridge::CvImage img_bridge(header, sensor_msgs::image_encodings::BGR8, imTrack);
-	pTrack_img_pub->publish(img_bridge.toImageMsg());
+	mTrack_img_pub.publish(img_bridge.toImageMsg());
 }
 map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> LKTracker::trackImage(double _cur_time,
                                                                                const cv::Mat &_img,
@@ -641,10 +636,10 @@ void LKTracker::drawTrackFrame(Frame &cur_frame, const Frame &prev_frame, cv::Ma
 	cv::Mat result_cur = cur_frame.imgLeft.clone();
 	cv::Mat result_prev = prev_frame.imgLeft.clone();
 	if (result_cur.channels() == 1) {
-		cv::cvtColor(result_cur, result_cur, CV_GRAY2BGR);
+		cv::cvtColor(result_cur, result_cur, cv::COLOR_GRAY2BGR);
 	}
 	if (result_prev.channels() == 1) {
-		cv::cvtColor(result_prev, result_prev, CV_GRAY2BGR);
+		cv::cvtColor(result_prev, result_prev, cv::COLOR_GRAY2BGR);
 	}
 
 	for (int i = 0; i < cur_frame.N; i++) {

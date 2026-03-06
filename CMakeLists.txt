@@ -100,6 +100,7 @@ add_library(${PROJECT_NAME} SHARED
     src/PnPsolver.cc
     src/MLPnPsolver.cpp
     src/LKTracker.cpp
+    src/LKTrackerNode.cpp
     src/LoopClosing.cc
     src/System.cc
     src/RosHandling.cpp

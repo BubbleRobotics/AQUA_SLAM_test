@@ -19,33 +19,33 @@
 
 #include "Tracking.h"
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/features2d/features2d.hpp>
-#include <opencv2/core/eigen.hpp>
+#include<opencv2/core/core.hpp>
+#include<opencv2/features2d/features2d.hpp>
+#include<opencv2/core/eigen.hpp>
 
-#include "LKTracker.h"
-#include "ORBmatcher.h"
-#include "FrameDrawer.h"
-#include "Converter.h"
-#include "Initializer.h"
-#include "G2oTypes.h"
-#include "Optimizer.h"
-#include "PnPsolver.h"
+#include"LKTracker.h"
+#include"ORBmatcher.h"
+#include"FrameDrawer.h"
+#include"Converter.h"
+#include"Initializer.h"
+#include"G2oTypes.h"
+#include"Optimizer.h"
+#include"PnPsolver.h"
 #include "Pinhole.h"
 // #include"Viewer.h"
-#include "FrameDrawer.h"
-#include "Atlas.h"
-#include "LocalMapping.h"
-#include "LoopClosing.h"
+#include"FrameDrawer.h"
+#include"Atlas.h"
+#include"LocalMapping.h"
+#include"LoopClosing.h"
 #include "System.h"
 #include "src/Integrator.h"
 #include <DVLGroPreIntegration.h>
 
-#include <iostream>
+#include<iostream>
 #include <fstream>
 
-#include <mutex>
-#include <chrono>
+#include<mutex>
+#include<chrono>
 #include <include/CameraModels/Pinhole.h>
 #include <include/CameraModels/KannalaBrandt8.h>
 #include <include/MLPnPsolver.h>
@@ -69,6 +69,7 @@ Tracking::Tracking(System *pSys,
                    DenseMapper *pDenseMapper,
                    const string &strSettingPath,
                    const int sensor,
+				   rclcpp::Node::SharedPtr pNode,
                    const string &_nameSeq)
 	:
 	mState(NO_IMAGES_YET), mSensor(sensor), mTrackedFr(0), mbStep(false),
@@ -77,8 +78,13 @@ Tracking::Tracking(System *pSys,
 	mpFrameDrawer(pFrameDrawer),  mpAtlas(pAtlas), mnLastRelocFrameId(0),
 	time_recently_lost(5.0), mpDenseMapper(pDenseMapper),
 	mnInitialFrameId(0), mbCreatedMap(false), mnFirstFrameId(0), mpCamera2(nullptr), mpRosHandler(pRosHandler),
-    mpDvlPreintegratedFromLastKF(nullptr)
+    mpDvlPreintegratedFromLastKF(nullptr), mpMainNode(pNode)
 {
+	// initialize the pose pulisher
+	// ros::NodeHandle n;
+	// mPose_pub = n.advertise<geometry_msgs::PoseStamped>("/AQUA_SLAM/orb_pose", 10);
+	// mEKFPose_pub = n.advertise<geometry_msgs::PoseStamped>("/AQUA_SLAM/preintegrated_pose", 10);
+	// Load camera parameters from settings file
 	cv::FileStorage fSettings(strSettingPath, cv::FileStorage::READ);
 
 	// set the transformation from calibrated camera to camera model
@@ -193,6 +199,9 @@ Tracking::Tracking(System *pSys,
 
     mpIntegrator = new Integrator();
     mpIntegrator->CreateNewIntFromKF_C2C(IMU::Bias(),GetExtrinsicPara(),mAlpha,mBeta);
+
+	// LKTracker object needs a node passed to it in the ros2 version
+	mpLKTracker = new LKTracker(mpMainNode);
 }
 
 Tracking::~Tracking()
