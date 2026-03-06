@@ -110,6 +110,7 @@ add_library(${PROJECT_NAME} SHARED
     src/FrameDrawer.cc
     src/Initializer.cc
     src/Integrator.cpp
+    src/Tracking.cc
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${AQUA_SLAM_INCLUDES})

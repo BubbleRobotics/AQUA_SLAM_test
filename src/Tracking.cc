@@ -19,36 +19,36 @@
 
 #include "Tracking.h"
 
-#include<opencv2/core/core.hpp>
-#include<opencv2/features2d/features2d.hpp>
-#include<opencv2/core/eigen.hpp>
-
-#include"LKTracker.h"
-#include"ORBmatcher.h"
-#include"FrameDrawer.h"
-#include"Converter.h"
-#include"Initializer.h"
-#include"G2oTypes.h"
-#include"Optimizer.h"
-#include"PnPsolver.h"
+#include <opencv2/core/core.hpp>
+#include <opencv2/features2d/features2d.hpp>
+#include <opencv2/core/eigen.hpp>
+ 
+#include "LKTracker.h"
+#include "ORBmatcher.h"
+#include "FrameDrawer.h"
+#include "Converter.h"
+#include "Initializer.h"
+#include "G2oTypes.h"
+#include "Optimizer.h"
+#include "PnPsolver.h"
 #include "Pinhole.h"
 // #include"Viewer.h"
-#include"FrameDrawer.h"
-#include"Atlas.h"
-#include"LocalMapping.h"
-#include"LoopClosing.h"
+#include "FrameDrawer.h"
+#include "Atlas.h"
+#include "LocalMapping.h"
+#include "LoopClosing.h"
 #include "System.h"
-#include "src/Integrator.h"
+#include "Integrator.h"
 #include <DVLGroPreIntegration.h>
 
-#include<iostream>
+#include <iostream>
 #include <fstream>
 
-#include<mutex>
-#include<chrono>
-#include <include/CameraModels/Pinhole.h>
-#include <include/CameraModels/KannalaBrandt8.h>
-#include <include/MLPnPsolver.h>
+#include <mutex>
+#include <chrono>
+#include <Pinhole.h> 		 // from CameraModels
+#include <KannalaBrandt8.h>  // from CameraModels
+#include <MLPnPsolver.h>
 #include <RosHandling.h>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -1008,7 +1008,7 @@ cv::Mat Tracking::GrabImageStereoDvl(const cv::Mat &imRectLeft,
 		                      GetExtrinsicPara());
 	}
 	else {
-		ROS_ERROR_STREAM("Wrong Mode!");
+		RCLCPP_ERROR_STREAM(mpMainNode->get_logger(), "Wrong Mode!");
         assert(0);
 	}
 
@@ -1077,7 +1077,7 @@ cv::Mat Tracking::GrabImageStereoDvlgyro(const Mat &imRectLeft,
 		                      GetExtrinsicPara());
 	}
 	else {
-		ROS_ERROR_STREAM("Wrong Mode!");
+		RCLCPP_ERROR_STREAM(mpMainNode->get_logger(), "Wrong Mode!");
         assert(0);
 	}
 
@@ -1227,7 +1227,7 @@ void Tracking::PreintegrateDvlGro()
 	//cout << "start preintegration" << endl;
 
 	if (mCurrentFrame.mpPrevFrame->mTimeStamp == 0) {
-		ROS_INFO_STREAM("non prev frame ");
+		RCLCPP_INFO_STREAM(mpMainNode->get_logger(), "non prev frame ");
 //		Verbose::PrintMess(, Verbose::VERBOSITY_NORMAL);
 		mCurrentFrame.setIntegrated();
 		return;
@@ -1239,7 +1239,7 @@ void Tracking::PreintegrateDvlGro()
 	mvImuFromLastFrame.reserve(mlQueueImuData.size());
 	if (mlQueueImuData.size() == 0) {
 		Verbose::PrintMess("Not IMU data in mlQueueImuData!!", Verbose::VERBOSITY_NORMAL);
-		ROS_WARN_STREAM("Not IMU data in mlQueueImuData!!");
+		RCLCPP_WARN_STREAM(mpMainNode->get_logger(), "Not IMU data in mlQueueImuData!!");
 		mCurrentFrame.setIntegrated();
 		return;
 	}
@@ -1415,7 +1415,7 @@ void Tracking::PreintegrateDvlGro2()
 	//cout << "start preintegration" << endl;
 
 	if (mCurrentFrame.mpPrevFrame->mTimeStamp == 0) {
-		ROS_INFO_STREAM("non prev frame ");
+		RCLCPP_INFO_STREAM(mpMainNode->get_logger(), "non prev frame ");
 //		Verbose::PrintMess(, Verbose::VERBOSITY_NORMAL);
 		mCurrentFrame.setIntegrated();
 		return;
@@ -1427,7 +1427,7 @@ void Tracking::PreintegrateDvlGro2()
 	mvGyroDVLFromLastFrame.reserve(mlQueueDVLGyroData.size());
 	if (mlQueueDVLGyroData.size() == 0) {
 		Verbose::PrintMess("Not IMU data in mlQueueDVLGyroData!!", Verbose::VERBOSITY_NORMAL);
-		ROS_WARN_STREAM("Not IMU data in mlQueueDVLGyroData!!");
+		RCLCPP_WARN_STREAM(mpMainNode->get_logger(), "Not IMU data in mlQueueDVLGyroData!!");
 		mCurrentFrame.setIntegrated();
 		return;
 	}
@@ -1814,7 +1814,7 @@ bool Tracking::PredictStateDvlGro()
     Eigen::Vector3d v_df,v_df_mea;
     pKF->GetDvlVelocity(v_df);
     pKF->GetDvlVelocityMeasurement(v_df_mea);
-    ROS_DEBUG_STREAM("predict pose KF[" << pKF->mnId << "] dvl velocity: "<<v_df_mea.transpose()<<" opt velocity: "<<v_df.transpose());
+    RCLCPP_DEBUG_STREAM(mpMainNode->get_logger(), "predict pose KF[" << pKF->mnId << "] dvl velocity: "<<v_df_mea.transpose()<<" opt velocity: "<<v_df.transpose());
 
     Eigen::Isometry3d T_b_d,T_d_c,T_c0_cf,T_b_c;
     cv::Mat T_g_d_cv = GetExtrinsicPara().mT_gyro_dvl;
@@ -1851,7 +1851,7 @@ bool Tracking::PredictStateDvlGro()
     // T_c0_c1 = T_d_c.inverse() * T_d0_d1 *T_d_c;
     if(0){
         //use IMU as prediction
-        ROS_DEBUG_STREAM("use IMU as prediction");
+        RCLCPP_DEBUG_STREAM(mpMainNode->get_logger(), "use IMU as prediction");
         Eigen::Matrix3d R_b0_b1 = R_b0_bf * R_bf_b1;
         Eigen::Isometry3d T_b0_b1 = Eigen::Isometry3d::Identity();
         T_b0_b1.rotate(R_b0_b1);
@@ -1860,7 +1860,7 @@ bool Tracking::PredictStateDvlGro()
     }
     else{
         //use DVL as prediction
-        ROS_DEBUG_STREAM("use DVL as prediction");
+        RCLCPP_DEBUG_STREAM(mpMainNode->get_logger(), "use DVL as prediction");
         Eigen::Isometry3d T_d0_df = T_d_c * T_c0_cf * T_d_c.inverse();
         Eigen::Matrix3d R_df_d1 = R_b_d.transpose() * R_bf_b1 * R_b_d;
         Eigen::Isometry3d T_df_d1 = Eigen::Isometry3d::Identity();
@@ -2016,8 +2016,8 @@ void Tracking::topicPublishDVLOnly()
 	Eigen::Isometry3d T_c0_cj_orb = mT_c_cm * T_c0_cj * mT_c_cm.inverse();
 	Eigen::Isometry3d T_d0_cj = T_d_c * T_c0_cj;
 
-	mpRosHandler->PublishOrb(T_c0_cj, T_d_c, ros::Time(mCurrentFrame.mTimeStamp));
-	mpRosHandler->PublishCamera(T_c0_cj_camera, ros::Time(mCurrentFrame.mTimeStamp));
+	mpRosHandler->PublishOrb(T_c0_cj, T_d_c, rclcpp::Time(mCurrentFrame.mTimeStamp));
+	mpRosHandler->PublishCamera(T_c0_cj_camera, rclcpp::Time(mCurrentFrame.mTimeStamp));
 	// EKF pose
 	Eigen::Isometry3d T_e0_ej_ekf = mCurrentFrame.mT_e0_ej;
 
@@ -2025,8 +2025,8 @@ void Tracking::topicPublishDVLOnly()
 
     mpFrameDrawer->Update(this);
 	cv::Mat img_with_info = mpFrameDrawer->DrawFrame(true);
-	std_msgs::Header header; // empty header
-	header.stamp = ros::Time::now(); // time
+	std_msgs::msg::Header header; // empty header
+	header.stamp = mpMainNode->get_clock()->now(); // time
 	cv_bridge::CvImage img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, img_with_info);
 	mpRosHandler->PublishImgWithInfo(img_bridge.toImageMsg());
 
@@ -2510,12 +2510,12 @@ void Tracking::Track()
 			cv::cv2eigen(T_d_c_cv, T_d_c.matrix());
 			Eigen::Isometry3d T_d0_cj = T_d_c * T_c0_cj;
 
-			mpRosHandler->PublishOrb(T_c0_cj, T_d_c, ros::Time(mCurrentFrame.mTimeStamp));
-			mpRosHandler->PublishCamera(T_c0_cj_camera, ros::Time(mCurrentFrame.mTimeStamp));
+			mpRosHandler->PublishOrb(T_c0_cj, T_d_c, rclcpp::Time(mCurrentFrame.mTimeStamp));
+			mpRosHandler->PublishCamera(T_c0_cj_camera, rclcpp::Time(mCurrentFrame.mTimeStamp));
 //			mpRosHandler->UpdateMap(mpAtlas);
 			cv::Mat img_with_info = mpFrameDrawer->DrawFrame(true);
-			std_msgs::Header header; // empty header
-			header.stamp = ros::Time::now(); // time
+			std_msgs::msg::Header header; // empty header
+			header.stamp = mpMainNode->get_clock()->now(); // time
 			cv_bridge::CvImage
 				img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, img_with_info);
 			mpRosHandler->PublishImgWithInfo(img_bridge.toImageMsg());
@@ -2670,8 +2670,9 @@ void Tracking::Track()
 
 void Tracking::TrackDVLGyro()
 {
-
-    ROS_DEBUG_STREAM(fixed << setprecision(6)<<"Frame["<<mCurrentFrame.mnId<<"] "<<mCurrentFrame.mTimeStamp);
+	std::ostringstream oss;
+	oss << std::fixed << std::setprecision(6) << "Frame["<<mCurrentFrame.mnId<<"] " << mCurrentFrame.mTimeStamp;
+    RCLCPP_DEBUG(mpMainNode->get_logger(), "%s", oss.str().c_str());
 	if (bStepByStep) {
 		while (!mbStep) {
 			usleep(500);
@@ -2726,14 +2727,14 @@ void Tracking::TrackDVLGyro()
 		{
             // topicPublishDVLOnly();
 			mLastFrame = Frame(mCurrentFrame);
-            ROS_INFO_STREAM(fixed<<setprecision(6)<<"fail to initialize, Frame["<<mCurrentFrame.mnId<<"], "<<mCurrentFrame.mTimeStamp);
+            RCLCPP_INFO_STREAM(mpMainNode->get_logger(), fixed<<setprecision(6)<<"fail to initialize, Frame["<<mCurrentFrame.mnId<<"], "<<mCurrentFrame.mTimeStamp);
 			return;
 		}
 //        cout<<"initialization success"<<endl;
 		if (mpAtlas->GetAllMaps().size() == 1) {
 			mnFirstFrameId = mCurrentFrame.mnId;
 		}
-        ROS_INFO_STREAM(fixed<<setprecision(6)<<"initialization is done, Frame["<<mCurrentFrame.mnId<<"], "<<mCurrentFrame.mTimeStamp);
+        RCLCPP_INFO_STREAM(mpMainNode->get_logger(), fixed<<setprecision(6)<<"initialization is done, Frame["<<mCurrentFrame.mnId<<"], "<<mCurrentFrame.mTimeStamp);
         mLastFrame = Frame(mCurrentFrame);
 	}
 		// after Initialization
@@ -2771,7 +2772,7 @@ void Tracking::TrackDVLGyro()
 				if (!bOK) {
                     bOK = TrackReferenceKeyFrame();
 
-                    ROS_INFO_STREAM("Fail to track with motion model!");
+                    RCLCPP_INFO_STREAM(mpMainNode->get_logger(), "Fail to track with motion model!");
 					// cout << "Fail to track with motion model!" << endl;
                     if(!OK){
                         PredictStateDvlGro();
@@ -2831,7 +2832,7 @@ void Tracking::TrackDVLGyro()
                 // PredictStateDvlGro();
             // }
             if (!bOK) {
-                ROS_INFO_STREAM("Fail to track local map!");
+                RCLCPP_INFO_STREAM(mpMainNode->get_logger(), "Fail to track local map!");
                 PredictStateDvlGro();
             }
 		}
@@ -2879,12 +2880,12 @@ void Tracking::TrackDVLGyro()
 			cv::cv2eigen(T_d_c_cv, T_d_c.matrix());
 			Eigen::Isometry3d T_d0_cj = T_d_c * T_c0_cj;
 
-			mpRosHandler->PublishOrb(T_c0_cj, T_d_c, ros::Time(mCurrentFrame.mTimeStamp));
-			mpRosHandler->PublishCamera(T_c0_cj_camera, ros::Time(mCurrentFrame.mTimeStamp));
+			mpRosHandler->PublishOrb(T_c0_cj, T_d_c, rclcpp::Time(mCurrentFrame.mTimeStamp));
+			mpRosHandler->PublishCamera(T_c0_cj_camera, rclcpp::Time(mCurrentFrame.mTimeStamp));
 //			mpRosHandler->UpdateMap(mpAtlas);
 			cv::Mat img_with_info = mpFrameDrawer->DrawFrame(true);
-			std_msgs::Header header; // empty header
-			header.stamp = ros::Time::now(); // time
+			std_msgs::msg::Header header; // empty header
+			header.stamp = mpMainNode->get_clock()->now(); // time
 			cv_bridge::CvImage
 				img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, img_with_info);
 			mpRosHandler->PublishImgWithInfo(img_bridge.toImageMsg());
@@ -2968,7 +2969,7 @@ void Tracking::TrackDVLGyro()
                         mCurrentFrame.mpDvlPreintegrationLossRefKF = mpIntegrator->mpIntFromKFBeforeLost_C2C;
                         mCurrentFrame.mpLossRefKF = mpIntegrator->mpLossRefKF;
                         CreateNewKeyFrame();
-                        ROS_INFO_STREAM(fixed<<setprecision(6)<<"KF["<<mpLastKeyFrame->mnId
+                    	RCLCPP_INFO_STREAM(mpMainNode->get_logger(), fixed<<setprecision(6)<<"KF["<<mpLastKeyFrame->mnId
                                              <<"] "<<mpLastKeyFrame->mTimeStamp<<" Loss Reference has beed set to KF["
                                              <<mpLastKeyFrame->mpLossRefKF->mnId<<"] "<<mpLastKeyFrame->mpLossRefKF->mTimeStamp);
                         KeyFrame* pkf = mpLastKeyFrame;
@@ -2991,7 +2992,7 @@ void Tracking::TrackDVLGyro()
                         KeyFrame* pkf = mpLastKeyFrame;
                         std::unique_lock<std::shared_mutex> lock(mLossKFMutex);
                         mvpLossKF.insert(pkf);
-                        ROS_DEBUG_STREAM("add KF["<<pkf->mnId<<"] to loss KF set");
+                        RCLCPP_DEBUG_STREAM(mpMainNode->get_logger(), "add KF["<<pkf->mnId<<"] to loss KF set");
                         auto loss_kf = mvpLossKF;
                         // Optimizer::PoseOnlyOptimizationDVLIMU(loss_kf, mpAtlas);
                     }
@@ -3319,12 +3320,12 @@ void Tracking::TrackKLT()
 			cv::cv2eigen(T_d_c_cv, T_d_c.matrix());
 			Eigen::Isometry3d T_d0_cj = T_d_c * T_c0_cj;
 
-			mpRosHandler->PublishOrb(T_c0_cj, T_d_c, ros::Time(mCurrentFrame.mTimeStamp));
-			mpRosHandler->PublishCamera(T_c0_cj_camera, ros::Time(mCurrentFrame.mTimeStamp));
+			mpRosHandler->PublishOrb(T_c0_cj, T_d_c, rclcpp::Time(mCurrentFrame.mTimeStamp));
+			mpRosHandler->PublishCamera(T_c0_cj_camera, rclcpp::Time(mCurrentFrame.mTimeStamp));
 //			mpRosHandler->UpdateMap(mpAtlas);
 			cv::Mat img_with_info = mpFrameDrawer->DrawFrame(true);
-			std_msgs::Header header; // empty header
-			header.stamp = ros::Time::now(); // time
+			std_msgs::msg::Header header; // empty header
+			header.stamp = mpMainNode->get_clock()->now(); // time
 			cv_bridge::CvImage
 				img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, img_with_info);
 			mpRosHandler->PublishImgWithInfo(img_bridge.toImageMsg());
@@ -3468,7 +3469,7 @@ void Tracking::TrackKLT()
 
 void Tracking::StereoInitialization()
 {
-    ROS_INFO_STREAM("try to initialize");
+    RCLCPP_INFO_STREAM(mpMainNode->get_logger(), "try to initialize");
 	if (mCurrentFrame.N > 500) {
 		if (mSensor == System::DVL_STEREO) {
             if (mpIntegrator->GetDoLossIntegration()) {
@@ -3484,12 +3485,12 @@ void Tracking::StereoInitialization()
             {
                 std::shared_lock<std::shared_mutex> lock(mBiasMutex);
                 mpIntegrator->CreateNewIntFromKF_C2C(mLastBias, GetExtrinsicPara(), mAlpha, mBeta);
-                ROS_INFO_STREAM("create new preintegration from KF with bias: " << mLastBias.bax << " "
+        		RCLCPP_INFO_STREAM(mpMainNode->get_logger(), "create new preintegration from KF with bias: " << mLastBias.bax << " "
                                                                                 << mLastBias.bay << " " << mLastBias.baz << " " << mLastBias.bwx << " " << mLastBias.bwy
                                                                                 << " " << mLastBias.bwz);
             }
             else{
-				ROS_INFO_STREAM("create new preintegration from KF with 0 bias");
+				RCLCPP_INFO_STREAM(mpMainNode->get_logger(), "create new preintegration from KF with 0 bias");
                 mpIntegrator->CreateNewIntFromKF_C2C(IMU::Bias(), GetExtrinsicPara(), mAlpha, mBeta);
             }
             if(!mlQueueDVLGyroData.empty()){
@@ -3514,7 +3515,7 @@ void Tracking::StereoInitialization()
             pKFini->SetNewBias(pKFini->mpDvlPreintegrationKeyFrame->mb);
         }
         else if(pKFini->mnId != 0){
-            ROS_ERROR_STREAM("mpLastKeyFrame is NULL");
+            RCLCPP_ERROR_STREAM(mpMainNode->get_logger(), "mpLastKeyFrame is NULL");
             assert(mpLastKeyFrame);
         }
 
@@ -3589,14 +3590,14 @@ void Tracking::StereoInitialization()
         if(mpIntegrator->GetDoLossIntegration()){
             std::unique_lock<std::shared_mutex> lock(mLossKFMutex);
             mvpLossKF.insert(pKFini);
-            ROS_DEBUG_STREAM("add KF["<<pKFini->mnId<<"] to loss KF set");
+            RCLCPP_DEBUG_STREAM(mpMainNode->get_logger(), "add KF["<<pKFini->mnId<<"] to loss KF set");
         }
         auto all_loss_kf =getMvpLossKf();
         if(all_loss_kf.size()>0 && (mpIntegrator->GetDoLossIntegration())){
             Optimizer::PoseOnlyOptimizationDVLIMU(all_loss_kf, mpAtlas, mLossLastOptID);
-            ROS_DEBUG_STREAM("DVL IMU Optimization done");
+            RCLCPP_DEBUG_STREAM(mpMainNode->get_logger(), "DVL IMU Optimization done");
             for (auto pKF : all_loss_kf) {
-                ROS_DEBUG_STREAM(fixed<<setprecision(6)<< "KF[" << pKF->mnId << "] bias: "<<pKF->GetImuBias()
+                RCLCPP_DEBUG_STREAM(mpMainNode->get_logger(), fixed<<setprecision(6)<< "KF[" << pKF->mnId << "] bias: "<<pKF->GetImuBias()
                 << " integration duration: " << pKF->mpDvlPreintegrationKeyFrame->dT);
             }
             // UpdateFrameDVLGyro(pKFini->GetImuBias(),pKFini);
@@ -3976,7 +3977,7 @@ void Tracking::CreateMapInAtlas()
         mpIntegrator->CreateNewIntFromKFBeforeLoss_D2D(mpIntegrator->mpIntFromKF_C2C);
         mpIntegrator->SetLossRefKF(mpLastKeyFrame);
         mpIntegrator->SetDoLossIntegration(true);
-        ROS_INFO_STREAM("Create new DVL preintegration before loss, bias: "
+        RCLCPP_INFO_STREAM(mpMainNode->get_logger(), "Create new DVL preintegration before loss, bias: "
         <<mpIntegrator->mpIntFromKFBeforeLost_C2C->mb.bax<<", "
         <<mpIntegrator->mpIntFromKFBeforeLost_C2C->mb.bay<<", "
         <<mpIntegrator->mpIntFromKFBeforeLost_C2C->mb.baz);
@@ -3987,7 +3988,7 @@ void Tracking::CreateMapInAtlas()
         mLossLastOptID = mpLastKeyFrame->mnId;
         // remember to change in optimization, if change the number if KF inserted
 		while(mvpLossKF.size() < 5 && pkf){
-			ROS_INFO_STREAM("pKF["<<pkf->mnId<<"] inserted");
+			RCLCPP_INFO_STREAM(mpMainNode->get_logger(), "pKF["<<pkf->mnId<<"] inserted");
 			mvpLossKF.insert(pkf);
             pkf = pkf->mPrevKF;
 		}
@@ -4934,8 +4935,8 @@ void Tracking::drawOptimizationResult()
 	                                                                                         img_dvl_gyro_withinfo.cols
 		                                                                                         + img_orb_withinfo
 			                                                                                         .cols));
-	std_msgs::Header header; // empty header
-	header.stamp = ros::Time::now(); // time
+	std_msgs::msg::Header header; // empty header
+	header.stamp = mpMainNode->get_clock()->now(); // time
 //	cv::Mat img_with_info=mpFrameDrawer->DrawFrame(true);
 
 	if (img_with_debuginfo.channels() < 3) {
@@ -5362,7 +5363,7 @@ void Tracking::CreateNewKeyFrame()
         mpLastKeyFrame->mNextKF = pKF;
     }
     else {
-        ROS_ERROR_STREAM("mpLastKeyFrame is NULL! when create new KF!");
+        RCLCPP_ERROR_STREAM(mpMainNode->get_logger(), "mpLastKeyFrame is NULL! when create new KF!");
         assert(-1);
     }
     // //Optimize bias of new KF
@@ -5409,7 +5410,7 @@ void Tracking::CreateNewKeyFrame()
 		// mpDvlPreintegratedFromLastKF = new DVLGroPreIntegration(pKF->GetImuBias(), pKF->mImuCalib);
         mpIntegrator->CreateNewIntFromKF_C2C(mLastBias, GetExtrinsicPara(),mAlpha,mBeta);
         pKF->SetNewBias(mLastBias);
-        ROS_INFO_STREAM("create new KF["<<pKF->mnId<<"]"<<" bias(acc gyros):"<<mLastBias.bax<<","<<mLastBias.bay<<","<<mLastBias.baz<<","<<mLastBias.bwx<<","<<mLastBias.bwy<<","<<mLastBias.bwz);
+        RCLCPP_INFO_STREAM(mpMainNode->get_logger(), "create new KF["<<pKF->mnId<<"]"<<" bias(acc gyros):"<<mLastBias.bax<<","<<mLastBias.bay<<","<<mLastBias.baz<<","<<mLastBias.bwx<<","<<mLastBias.bwy<<","<<mLastBias.bwz);
         // mpIntegrator->CreateNewIntFromKF_D2D(pKF->GetImuBias(), pKF->mImuCalib,mAlpha,mBeta);
 	}
 
@@ -6174,7 +6175,7 @@ void Tracking::Reset(bool bLocMap)
 
 
 	Verbose::PrintMess("   End reseting! ", Verbose::VERBOSITY_NORMAL);
-    ROS_INFO_STREAM("reset done");
+    RCLCPP_INFO_STREAM(mpMainNode->get_logger(), "reset done");
 }
 
 void Tracking::ResetActiveMap(bool bLocMap)

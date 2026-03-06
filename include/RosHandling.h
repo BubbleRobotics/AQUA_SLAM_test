@@ -70,7 +70,7 @@ public:
 	RosHandling(System *pSys, LocalMapping *pLocal, rclcpp::Node::SharedPtr pMainNode);
 	void PublishLeftImg(const sensor_msgs::msg::Image &img);
 	void PublishRightImg(const sensor_msgs::msg::Image &img);
-	void PublishImgWithInfo(const sensor_msgs::msg::Image &img);
+	void PublishImgWithInfo(const sensor_msgs::msg::Image::SharedPtr img);
 	void PublishImgMergeCandidate(const cv::Mat &img);
 	void PublishIntegration(Atlas *pAtlas);
     void PublishLossKF(set<KeyFrame*,KFComparator> &loss_kfs);

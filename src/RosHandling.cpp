@@ -109,9 +109,11 @@ void RosHandling::PublishRightImg(const sensor_msgs::msg::Image &img)
 {
 	mp_img_r_pub.publish(img);
 }
-void RosHandling::PublishImgWithInfo(const sensor_msgs::msg::Image &img)
+void RosHandling::PublishImgWithInfo(const sensor_msgs::msg::Image::SharedPtr img)
 {
-	mp_img_info_pub.publish(img);
+	// Takes in a shared pointer to a message and derefences it to a message itself
+	// passed to the publish function
+	mp_img_info_pub.publish(*img);
 }
 
 void RosHandling::PublishOrb(const Eigen::Isometry3d &T_c0_cj_orb,
