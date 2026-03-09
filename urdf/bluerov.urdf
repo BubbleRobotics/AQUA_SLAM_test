@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot name="vehicle">
+<link name="bluerov/base_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://ORB_DVL2/urdf/bluerov2_noprop.dae" scale="1 1 1"/>
+      </geometry>
+    </visual>
+  </link>
+</robot>

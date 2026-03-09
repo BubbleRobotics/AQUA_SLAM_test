@@ -281,7 +281,7 @@ else
 	mpLoopCloser->SetLocalMapper(mpLocalMapper);
 
 	// Fix verbosity
-	Verbose::SetTh(Verbose::VERBOSITY_QUIET);
+	Verbose::SetTh(Verbose::VERBOSITY_DEBUG);
 
 //	mT_e_c = Eigen::Isometry3d::Identity();
 //	Eigen::Matrix3d r;

@@ -221,13 +221,16 @@ ament_target_dependencies(
 # Installation rules
 # ------------------------------------------------------------
 install(TARGETS
-  stereo_dvl2
   ${PROJECT_NAME}
   ${PROJECT_NAME}_Optimization
-  DESTINATION lib/${PROJECT_NAME}
+  DESTINATION lib
 )
 
+install(TARGETS stereo_dvl2 DESTINATION lib/${PROJECT_NAME})
+
 install(DIRECTORY include/ DESTINATION include/)
+
+install(DIRECTORY launch urdf data Vocabulary DESTINATION share/${PROJECT_NAME})
 
 # ------------------------------------------------------------
 # Export package
