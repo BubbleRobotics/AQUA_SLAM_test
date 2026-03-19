@@ -1,0 +1,21 @@
+<launch>
+    <node pkg="tf" type="static_transform_publisher" name="world2odom"
+    args="0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 1.0000 odom orb_slam 100"/>
+
+<!--     <node pkg="ORB_DVL2" type="cameras_black_node.py" name="camera_black" output="screen"/> -->
+<!--     <node pkg="ORB_DVL2" type="align_EKF.py" name="ekf_align" output="screen"/> -->
+
+    <node pkg="ORB_DVL2" type="stereo_dvl2" name="stereo_dvl"
+          args="$(find ORB_DVL2)/Vocabulary/ORBvoc.txt $(find ORB_DVL2)/data/lake_2026_03_12_params.yaml false" output="screen"/>
+<!--     <node pkg="ORB_DVL2" type="stereo_dvl2" name="stereo_dvl"-->
+<!--               args="$(find ORB_DVL2)/Vocabulary/ORBvoc.txt $(find ORB_DVL2)/data/underwater_orbslam3_falcon.yaml false" output="screen"/>-->
+<!--    <node pkg="ORB_DVL2" type="BlueOdom2Twist.py" name="BlueOdom2Twist" />-->
+    <arg name="model" default="$(find ORB_DVL2)/urdf/bluerov.urdf"/>
+    <param name="robot_description" command="$(find xacro)/xacro $(arg model)"/>
+    <param name="/ORBSLAM3_tightly/out_path" value="/home/da/project/ros/orb_dvl2_ws/src/dvl2/orb3_result/"/>
+    <param name="/ORBSLAM3_tightly/traj_path" value="/home/da/project/ros/orb_dvl2_ws/src/dvl2/dvl2_results/stamped_traj_estimate0.txt"/>
+    <param name="/ORBSLAM3_tightly/map_file" value="/home/da/project/ros/orb_dvl2_ws/src/dvl2/orb3_result/Altlas.osa"/>
+    <param name="/ORBSLAM3_tightly/is_load_map" value="false" type="bool"/>
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ORB_DVL2)/launch/falcon_tightly.rviz"/>
+
+</launch>
