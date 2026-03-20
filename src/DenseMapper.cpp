@@ -39,22 +39,116 @@ namespace ORB_SLAM3
 
         FileStorage fs(settingFile, FileStorage::READ);
         FileNode node = fs["DenseMapper"];
-        float P1 = (float) node["P1"];
-        float P2 = (float) node["P2"];
-        int correlation_window_size = (int) node["correlation_window_size"];
-        int disp12MaxDiff = (int) node["disp12MaxDiff"];
-        int disparity_range = (int) node["disparity_range"];
-        int min_disparity = (int) node["min_disparity"];
-        int prefilter_cap = (int) node["prefilter_cap"];
-        int prefilter_size = (int) node["prefilter_size"];
-        int speckle_range = (int) node["speckle_range"];
-        int speckle_size = (int) node["speckle_size"];
-        int texture_threshold = (int) node["texture_threshold"];
-        float uniqueness_ratio = (float) node["uniqueness_ratio"];
-        mLeafSize = (float) node["leaf_size"];
-        mMeanK = (int) node["mean_k"];
-        mStdThred = (float) node["std_thred"];
-        mEnable = !((float) node["enable"] == 0);
+
+        // Declaring the variables holding the parameter values
+        float P1, P2, uniqueness_ratio;
+        int correlation_window_size;
+        int disp12MaxDiff;
+        int disparity_range;
+        int min_disparity;
+        int prefilter_cap;
+        int prefilter_size;
+        int speckle_range;
+        int speckle_size;
+        int texture_threshold;
+        
+        // Reading the parameters from the file, making sure they are present
+        if (!node["P1"].empty()) {
+            P1 = (float) node["P1"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.P1");
+        }
+
+        if (!node["P2"].empty()) {
+            P2 = (float) node["P2"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.P2");
+        }
+
+        if (!node["correlation_window_size"].empty()) {
+            correlation_window_size = (int) node["correlation_window_size"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.correlation_window_size");
+        }
+
+        if (!node["disp12MaxDiff"].empty()) {
+            disp12MaxDiff = (int) node["disp12MaxDiff"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.disp12MaxDiff");
+        }
+
+        if (!node["disparity_range"].empty()) {
+            disparity_range = (int) node["disparity_range"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.disparity_range");
+        }
+
+        if (!node["min_disparity"].empty()) {
+            min_disparity = (int) node["min_disparity"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.min_disparity");
+        }
+
+        if (!node["prefilter_cap"].empty()) {
+            prefilter_cap = (int) node["prefilter_cap"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.prefilter_cap");
+        }
+
+        if (!node["prefilter_size"].empty()) {
+            prefilter_size = (int) node["prefilter_size"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.prefilter_size");
+        }
+
+        if (!node["speckle_range"].empty()) {
+            speckle_range = (int) node["speckle_range"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.speckle_range");
+        }
+
+        if (!node["speckle_size"].empty()) {
+            speckle_size = (int) node["speckle_size"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.speckle_size");
+        }
+
+        if (!node["texture_threshold"].empty()) {
+            texture_threshold = (int) node["texture_threshold"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.texture_threshold");
+        }
+
+        if (!node["uniqueness_ratio"].empty()) {
+            uniqueness_ratio = (float) node["uniqueness_ratio"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.uniqueness_ratio");
+        }
+
+
+        if (!node["leaf_size"].empty()) {
+            mLeafSize = (float) node["leaf_size"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.leaf_size");
+        }
+
+        if (!node["mean_k"].empty()) {
+            mMeanK = (int) node["mean_k"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.mean_k");
+        }
+
+        if (!node["std_thred"].empty()) {
+            mStdThred = (float) node["std_thred"];
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.std_thred");
+        }
+
+        if (!node["enable"].empty()) {
+            mEnable = !((float) node["enable"] == 0);
+        } else {
+            throw std::runtime_error("Missing parameter: DenseMapper.enable");
+        }
 
         mParam = DepthEstParamters(P1, P2, correlation_window_size, disp12MaxDiff, disparity_range,
                                    min_disparity, prefilter_cap, prefilter_size, speckle_range, speckle_size,
