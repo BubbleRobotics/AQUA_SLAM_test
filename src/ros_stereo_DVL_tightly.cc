@@ -56,6 +56,7 @@ public:
 
     void GrabDVL2(const dvl_msgs::msg::DVL::SharedPtr msg)
     {
+        // std::cout << "Called GrabDVL2" << std::endl;
         std::lock_guard<std::mutex> lock(mBufMutex);
         dvlBuf2.push(msg);
     }
@@ -83,6 +84,9 @@ public:
     ORB_SLAM3::System* mpSLAM;
     ImuGrabber* mpImuGb;
     DVLGrabber* mpDvlGb;
+    std::vector<cv::Mat> mvPoseEstBuf;
+    std::vector<double> mvPoseEstTimeBuf;
+    
 
     /* ----------------------------- Image callbacks ----------------------------- */
 
@@ -143,10 +147,14 @@ public:
     void SyncWithImu2()
     {
 
+        std::cout << "Called SyncWithImu2 \n";
+
         const double maxTimeDiff = 0.1;
 
         while (rclcpp::ok())
         {
+            // Verbose::PrintMess("imgLeftBuf.size() " + std::to_string(imgLeftBuf.size()), Verbose::VERBOSITY_DEBUG);
+            // Verbose::PrintMess("imgRightBuf.size() " + std::to_string(imgRightBuf.size()), Verbose::VERBOSITY_DEBUG);
 
             if(imgLeftBuf.empty() || imgRightBuf.empty() || mpImuGb->imuBuf.empty())
                 continue;
@@ -163,6 +171,8 @@ public:
             {
                 std::lock_guard<std::mutex> lock(mBufMutexRight);
 
+                // Look for a right image in the time range of the oldest left image
+                // Traverse the buffer of right images from the oldest to the newest, popping it
                 while((tImLeft - tImRight) > maxTimeDiff && imgRightBuf.size()>1)
                 {
                     imgRightBuf.pop();
@@ -181,14 +191,20 @@ public:
             }
 
             if (fabs(tImLeft - tImRight) > maxTimeDiff)
-                continue;
+                continue;  // we did not find left and right images within the time tolerancew
 
 
             if (tImLeft > rclcpp::Time(mpImuGb->imuBuf.back()->header.stamp).seconds())
-                continue;
+                continue;  // we run the loop again, essetntially waiting (since the imgLeftBuf and
+                           // imgRightBuf wont change) until all the IMU data up to the time of timLeft
+                           // have arrived. 
 
 
             /* ----- get images, convert from compressed to OpenCV ----- */
+
+            // This is the place where the oldest pair of synchronised images are popped from the 
+            // queues imgLeftBuf and imgRightBuf, ensuring that the loop never triggers 
+            // mpSLAM->TrackStereoGroDVL twice with the same data
 
             cv::Mat imLeft, imRight;
 
@@ -233,6 +249,8 @@ public:
                         msg->angular_velocity.y,
                         msg->angular_velocity.z);
 
+                    // Populate an instance of ImuPoint and an instance of GyroDvlPoint
+
                     vImuMeas.push_back(
                         ORB_SLAM3::IMU::ImuPoint(acc,gyr,t));
 
@@ -240,12 +258,13 @@ public:
                         ORB_SLAM3::IMU::GyroDvlPoint(
                             acc.x,acc.y,acc.z,
                             gyr.x,gyr.y,gyr.z,
-                            0,0,0,0,0,0,0,t));
+                            0,0,0,0,0,0,0,t));  // 0s as the DVL measurements for now
 
                     mpImuGb->imuBuf.pop();
                 }
             }
 
+            // Verbose::PrintMess("vImuMeas.size() is " + std::to_string(vImuMeas.size()), Verbose::VERBOSITY_DEBUG);
 
             /* ----------------------------- DVL ----------------------------- */
 
@@ -287,7 +306,9 @@ public:
                             msg->beams[2].velocity,
                             msg->beams[3].velocity,
                             t));
-
+                    
+                    // A new GyroDvlPoint object, but now it is using the constructor without
+                    // the acceleration. The acceleration vector is zero-initialised by default
                     vGyroDVLMeas.push_back(
                         ORB_SLAM3::IMU::GyroDvlPoint(
                             0,0,0,
@@ -304,11 +325,42 @@ public:
                 }
             }
 
-
-            if(vImuMeas.empty())
+            if(vImuMeas.empty()) {
+                Verbose::PrintMess("WARNING: No IMU measurements between Frames.", Verbose::VERBOSITY_VERBOSE);
                 continue;
+            }
 
+            while (vDVLMeas.size() >= 2) {
+                Verbose::PrintMess("WARNING: Two or more DVL measurements between Frames", Verbose::VERBOSITY_VERBOSE);
+                vDVLMeas.pop_back();
+            }
 
+            // virtual IMU Meas synchronised with the DVL timstamp
+			// Origninal comment: "in that virtual Meas, we save velocity to acc"
+            // I am not sure why they do that, I guess the programme later expects that
+			if (!vDVLMeas.empty() && !vImuMeas.empty()) {
+				if (vImuMeas[0].t >= vDVLMeas[0].t) {
+					vImuMeas.insert(vImuMeas.begin(),
+					                ORB_SLAM3::IMU::ImuPoint(vDVLMeas[0].v, vImuMeas[0].w, vDVLMeas[0].t));
+				}
+				else if (vImuMeas[vImuMeas.size() - 1].t <= vDVLMeas[0].t) {
+					vImuMeas.push_back(ORB_SLAM3::IMU::ImuPoint(vDVLMeas[0].v,
+					                                            vImuMeas[vImuMeas.size() - 1].w,
+					                                            vDVLMeas[0].t));
+				}
+				else {
+					for (int i = 0; i <= vImuMeas.size(); i++) {
+						if (vImuMeas[i].t > vDVLMeas[0].t) {
+							vImuMeas.insert(vImuMeas.begin() + i,
+							                ORB_SLAM3::IMU::ImuPoint(vDVLMeas[0].v, vImuMeas[i].w, vDVLMeas[0].t));
+							break;
+						}
+					}
+				}
+			}
+
+            // The GyroDVLPoint instances that have only IMU data were pushed into the vector first,
+            // then came the GyroDVLPoint instances with only DVL data. Now we want to sort by timestamp
             std::sort(
                 vGyroDVLMeas.begin(),
                 vGyroDVLMeas.end(),
@@ -317,14 +369,55 @@ public:
                     return a.t < b.t;
                 });
 
+            std::cout << "Calling mpSLAM->TrackStereoGroDVL\n";
+            std::cout <<  "vDVLMeas empty: " << vDVLMeas.empty() << std::endl;;
+            cv::Mat Tcw = mpSLAM->TrackStereoGroDVL(
+                            imLeft,
+                            imRight,
+                            tImLeft,
+                            vGyroDVLMeas,
+                            !vDVLMeas.empty());
+            
+            // save pose in a buffer
+            mvPoseEstBuf.push_back(Tcw);
+            mvPoseEstTimeBuf.push_back(vGyroDVLMeas.front().t);
+        }   
+    }
+    // Function called by the destructor to save the poses pushed to mvPoseEstBuf
+    void saveTrajectory() {
+        
+        std::ofstream file("trajectory.txt");
 
-            mpSLAM->TrackStereoGroDVL(
-                imLeft,
-                imRight,
-                tImLeft,
-                vGyroDVLMeas,
-                !vDVLMeas.empty());
+        file << "# sec x y z qx qy qz qw" << std::endl;
+
+        for (int i = 0; i < mvPoseEstBuf.size(); ++i) {
+
+            cv::Mat Tcw = mvPoseEstBuf.at(i);
+            double t = mvPoseEstTimeBuf.at(i);
+            
+            // convert the result into a quaternion
+            std::stringstream ss;
+            ss << "Tcw is \n" << Tcw;
+            Verbose::PrintMess(ss.str(), Verbose::VERBOSITY_DEBUG);
+            Eigen::Matrix3d Rcw;
+            Eigen::Vector3d wtwc;
+            Eigen::Vector3d ctcw;
+            cv::cv2eigen(Tcw(cv::Range(0,3), cv::Range(0,3)), Rcw);
+            cv::cv2eigen(Tcw(cv::Range(0,3), cv::Range(3,4)), ctcw);
+            wtwc = - Rcw.transpose() * wtwc;
+            Eigen::Quaterniond q(Rcw.transpose());
+
+            file << t << " " 
+                 << wtwc(0) << " " << wtwc(1) << " " << wtwc(3) << " "
+                 << q.x() << " " << q.y() << " " << q.z() << " " << q.w()
+                 << std::endl;
         }
+
+        file.close();
+
+        Verbose::PrintMess("Saved trajectory with " + std::to_string(mvPoseEstBuf.size()) + " poses", 
+            Verbose::VERBOSITY_DEBUG
+        );
     }
 };
 
