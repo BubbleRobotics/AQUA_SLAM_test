@@ -1802,7 +1802,28 @@ std::pair<double,double> LocalMapping::GetTravelDistance()
         Eigen::Isometry3d T_ci_cj = T_c0_ci.inverse() * T_c0_cj;
         Eigen::Matrix3d R_ci_cj = T_ci_cj.rotation();
         Eigen::Vector3d t_ci_cj = T_ci_cj.translation();
+
+		// ensure orthogonality
+		Eigen::JacobiSVD<Eigen::Matrix3d> svd(R_ci_cj, Eigen::ComputeFullU | Eigen::ComputeFullV);
+		Eigen::Matrix3d U = svd.matrixU();
+		Eigen::Matrix3d V = svd.matrixV();
+
+		// Project onto the closest orthogonal matrix
+		R_ci_cj = U * V.transpose();
+
+		// Ensure a proper rotation (det(R) = +1)
+		if (R_ci_cj.determinant() < 0) {
+			U.col(2) *= -1;
+			R_ci_cj = U * V.transpose();
+		}
+
+		// std::cout << "Before the crash?\n" 
+		// 		  << "R_ci_cj is\n" << R_ci_cj 
+		// 		  << "\nR_ci_cj * R_ci_cj.T is \n" << R_ci_cj * R_ci_cj.transpose() << std::endl;
+
         Sophus::SO3<double> R_ci_cj_SO3(R_ci_cj);
+		// std::cout << "After the crash?" << std::endl;
+
         Eigen::Vector3d R_ci_cj_so3 = R_ci_cj_SO3.log();
         t_dis += t_ci_cj.norm();
         R_dis += abs(R_ci_cj_so3.y());
